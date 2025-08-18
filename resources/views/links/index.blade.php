@@ -198,7 +198,7 @@
                                                     </svg>
                                                 </a>
                                                 
-                                                {{-- Fixed Toggle Button --}}
+                                                {{-- Fixed Toggle Button - Always Show --}}
                                                 <form method="POST" action="{{ route('links.update', $link) }}" class="inline">
                                                     @csrf
                                                     @method('PUT')
@@ -208,13 +208,15 @@
                                                     <input type="hidden" name="is_active" value="{{ $link->is_active ? '0' : '1' }}">
                                                     <button type="submit" 
                                                             onclick="return confirm('Are you sure you want to {{ $link->is_active ? 'deactivate' : 'activate' }} this link?')"
-                                                            class="bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-600 hover:bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-700 text-white p-2 rounded-lg transition duration-200 tooltip"
+                                                            class="p-2 rounded-lg transition duration-200 tooltip text-white {{ $link->is_active ? 'bg-orange-600 hover:bg-orange-700' : 'bg-emerald-600 hover:bg-emerald-700' }}"
                                                             title="{{ $link->is_active ? 'Deactivate' : 'Activate' }} Link">
                                                         @if($link->is_active)
+                                                            {{-- Deactivate Icon --}}
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6"></path>
                                                             </svg>
                                                         @else
+                                                            {{-- Activate Icon --}}
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                             </svg>
