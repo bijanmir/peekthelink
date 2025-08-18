@@ -10,16 +10,38 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'name', 'email', 'password', 'username', 
-        'display_name', 'bio', 'profile_image', 
-        'theme_color', 'is_active'
+        'name',
+        'username',
+        'email',
+        'password',
+        'display_name',
+        'bio',
+        'profile_image',
+        'theme_color',
+        'is_active',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -29,18 +51,27 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'username';
+    }
+
+    /**
+     * Get the user's links.
+     */
     public function links()
     {
         return $this->hasMany(Link::class)->orderBy('order');
     }
 
+    /**
+     * Get the user's active links.
+     */
     public function activeLinks()
     {
         return $this->hasMany(Link::class)->where('is_active', true)->orderBy('order');
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'username';
     }
 }

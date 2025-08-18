@@ -5,15 +5,12 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinksController;
 use Illuminate\Support\Facades\Route;
 
+// Home page
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Public profile routes
-Route::get('/{user:username}', [ProfileController::class, 'show'])->name('profile.show');
-Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])->name('profile.link');
-
-// Authenticated routes
+// Authenticated routes - MUST come before public profile routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -22,4 +19,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/links/reorder', [LinksController::class, 'updateOrder'])->name('links.reorder');
 });
 
+// Auth routes (login, register, etc.)
 require __DIR__.'/auth.php';
+
+// DEBUG ROUTES - Test these first
+Route::get('/debug/users', function() {
+    return \App\Models\User::all(['id', 'username', 'name']);
+});
+
+Route::get('/debug/links', function() {
+    return \App\Models\Link::with('user:id,username,name')->get();
+});
+
+// Simplified redirect route for testing
+Route::get('/test-redirect/{userId}/{linkId}', function($userId, $linkId) {
+    $user = \App\Models\User::findOrFail($userId);
+    $link = \App\Models\Link::findOrFail($linkId);
+    
+    if ($link->user_id !== $user->id) {
+        return "ERROR: Link doesn't belong to user!";
+    }
+    
+    return redirect()->away($link->url);
+});
+
+// Public profile routes - MUST come last to avoid conflicts
+Route::get('/{user:username}', [ProfileController::class, 'show'])
+    ->name('profile.show');
+
+// Simplified link redirect route (remove the constraints temporarily)
+Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])
+    ->name('profile.link');
