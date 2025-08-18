@@ -188,8 +188,8 @@
                                                 <p class="text-xs text-gray-500">clicks</p>
                                             </div>
 
-                                            {{-- Action Buttons --}}
-                                            <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            {{-- Action Buttons - Always visible now --}}
+                                            <div class="flex items-center space-x-2">
                                                 <a href="{{ route('links.edit', $link) }}" 
                                                    class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition duration-200 tooltip"
                                                    title="Edit Link">
@@ -198,27 +198,43 @@
                                                     </svg>
                                                 </a>
                                                 
-                                                <button onclick="toggleLinkStatus({{ $link->id }}, {{ $link->is_active ? 'false' : 'true' }})"
-                                                        class="bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-600 hover:bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-700 text-white p-2 rounded-lg transition duration-200 tooltip"
-                                                        title="{{ $link->is_active ? 'Deactivate' : 'Activate' }} Link">
-                                                    @if($link->is_active)
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6"></path>
-                                                        </svg>
-                                                    @else
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
-                                                    @endif
-                                                </button>
+                                                {{-- Fixed Toggle Button --}}
+                                                <form method="POST" action="{{ route('links.update', $link) }}" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="title" value="{{ $link->title }}">
+                                                    <input type="hidden" name="url" value="{{ $link->url }}">
+                                                    <input type="hidden" name="description" value="{{ $link->description }}">
+                                                    <input type="hidden" name="is_active" value="{{ $link->is_active ? '0' : '1' }}">
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Are you sure you want to {{ $link->is_active ? 'deactivate' : 'activate' }} this link?')"
+                                                            class="bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-600 hover:bg-{{ $link->is_active ? 'yellow' : 'emerald' }}-700 text-white p-2 rounded-lg transition duration-200 tooltip"
+                                                            title="{{ $link->is_active ? 'Deactivate' : 'Activate' }} Link">
+                                                        @if($link->is_active)
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6"></path>
+                                                            </svg>
+                                                        @else
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                        @endif
+                                                    </button>
+                                                </form>
 
-                                                <button onclick="deleteLink({{ $link->id }}, '{{ $link->title }}')"
-                                                        class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-200 tooltip"
-                                                        title="Delete Link">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                </button>
+                                                {{-- Delete Button --}}
+                                                <form method="POST" action="{{ route('links.destroy', $link) }}" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Are you sure you want to delete &quot;{{ $link->title }}&quot;? This action cannot be undone.')"
+                                                            class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition duration-200 tooltip"
+                                                            title="Delete Link">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -260,79 +276,6 @@
             </div>
         </div>
     </div>
-
-    {{-- Hidden Forms for AJAX Actions --}}
-    <form id="toggle-form" method="POST" style="display: none;">
-        @csrf
-        @method('PATCH')
-        <input type="hidden" name="is_active" id="toggle-status">
-    </form>
-
-    <form id="delete-form" method="POST" style="display: none;">
-        @csrf
-        @method('DELETE')
-    </form>
-
-    <script>
-        // Toggle link status
-        function toggleLinkStatus(linkId, newStatus) {
-            if (confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this link?`)) {
-                const form = document.getElementById('toggle-form');
-                form.action = `/links/${linkId}`;
-                document.getElementById('toggle-status').value = newStatus;
-                form.submit();
-            }
-        }
-
-        // Delete link with confirmation
-        function deleteLink(linkId, linkTitle) {
-            if (confirm(`Are you sure you want to delete "${linkTitle}"? This action cannot be undone.`)) {
-                const form = document.getElementById('delete-form');
-                form.action = `/links/${linkId}`;
-                form.submit();
-            }
-        }
-
-        // Drag and drop functionality (basic implementation)
-        // Note: For full drag-and-drop, you'd want to implement Sortable.js or similar
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('links-container');
-            if (container) {
-                // Add visual feedback for draggable items
-                const linkItems = container.querySelectorAll('.link-item');
-                linkItems.forEach(item => {
-                    item.addEventListener('dragstart', function() {
-                        this.style.opacity = '0.5';
-                    });
-                    item.addEventListener('dragend', function() {
-                        this.style.opacity = '1';
-                    });
-                });
-            }
-        });
-
-        // Enhanced toast notification system
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-red-600';
-            toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
-            toast.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type === 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"></path>
-                    </svg>
-                    ${message}
-                </div>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.classList.remove('translate-x-full'), 100);
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
-        }
-    </script>
 
     <style>
         .tooltip {
