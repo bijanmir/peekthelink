@@ -5,12 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Link;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class LinksController extends Controller
 {
     public function index()
     {
-        $links = auth()->user()->links;
+        $links = Auth::user()->links()
+            ->orderBy('order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('links.index', compact('links'));
     }
 
@@ -89,16 +94,34 @@ class LinksController extends Controller
             ->with('success', 'Link deleted successfully!');
     }
 
+
     public function updateOrder(Request $request)
     {
-        $linkIds = $request->input('links', []);
-        
-        foreach ($linkIds as $index => $linkId) {
-            auth()->user()->links()->where('id', $linkId)->update([
-                'order' => $index + 1
-            ]);
-        }
+        try {
+            $user = Auth::user();
+            $orderData = $request->input('order', []);
 
-        return response()->json(['success' => true]);
+            // Validate the request
+            if (empty($orderData)) {
+                return response()->json(['success' => false, 'message' => 'No order data provided']);
+            }
+
+            // Update each link's order
+            foreach ($orderData as $item) {
+                $linkId = $item['id'];
+                $newOrder = $item['order'];
+
+                // Only update links that belong to the authenticated user
+                $user->links()
+                    ->where('id', $linkId)
+                    ->update(['order' => $newOrder]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Link order updated successfully']);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to update link order: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to update link order']);
+        }
     }
 }

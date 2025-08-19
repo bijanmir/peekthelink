@@ -17,24 +17,18 @@ class DashboardController extends Controller
         
         // Date ranges
         $today = Carbon::today();
-        $yesterday = Carbon::yesterday();
         $thisWeek = Carbon::now()->startOfWeek();
         $lastWeek = Carbon::now()->subWeek()->startOfWeek();
         $thisMonth = Carbon::now()->startOfMonth();
         $lastMonth = Carbon::now()->subMonth()->startOfMonth();
         
-        // Basic metrics (works with current database)
+        // Basic metrics
         $totalLinksCount = $user->links()->count();
         $activeLinksCount = $user->links()->where('is_active', true)->count();
         $totalClicks = $user->links()->sum('clicks');
         
-        // Profile views (simulate for now since ProfileView table doesn't exist yet)
+        // Profile views (using LinkClick as proxy)
         $profileViews = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->distinct('ip_address')
-            ->count();
-            
-        $profileViewsToday = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereDate('created_at', $today)
             ->distinct('ip_address')
             ->count();
             
@@ -66,22 +60,119 @@ class DashboardController extends Controller
         $todayClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
             ->whereDate('created_at', $today)
             ->count();
+
+        // === ENHANCED REVENUE CALCULATIONS ===
         
-        // Monthly revenue (placeholder calculation)
-        $monthlyRevenue = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count() * 0.05; // $0.05 per click
+        // Revenue from sponsored links (pay per click)
+        $sponsoredRevenue = LinkClick::whereIn('link_id', function($query) use ($user) {
+                $query->select('id')
+                    ->from('links')
+                    ->where('user_id', $user->id)
+                    ->where('link_type', 'sponsored');
+            })
+            ->join('links', 'link_clicks.link_id', '=', 'links.id')
+            ->whereBetween('link_clicks.created_at', [$thisMonth, now()])
+            ->sum('links.sponsored_rate');
+        
+        // Estimated revenue from affiliate links
+        $affiliateEstimatedRevenue = $user->links()
+            ->where('link_type', 'affiliate')
+            ->where('is_active', true)
+            ->get()
+            ->sum(function($link) use ($thisMonth) {
+                $monthlyClicks = LinkClick::where('link_id', $link->id)
+                    ->whereBetween('created_at', [$thisMonth, now()])
+                    ->count();
+                
+                // Calculate potential: clicks × estimated_value × commission_rate × estimated_conversion_rate
+                $estimatedConversionRate = 0.02; // 2% default
+                return $monthlyClicks * $link->estimated_value * ($link->commission_rate / 100) * $estimatedConversionRate;
+            });
+        
+        // Revenue from product sales (using total_revenue field)
+        $productRevenue = $user->links()
+            ->where('link_type', 'product')
+            ->sum('total_revenue');
+        
+        // Total monthly revenue
+        $monthlyRevenue = $sponsoredRevenue + $affiliateEstimatedRevenue + $productRevenue;
+        
+        // Last month revenue for comparison
+        $lastMonthSponsored = LinkClick::whereIn('link_id', function($query) use ($user) {
+                $query->select('id')
+                    ->from('links')
+                    ->where('user_id', $user->id)
+                    ->where('link_type', 'sponsored');
+            })
+            ->join('links', 'link_clicks.link_id', '=', 'links.id')
+            ->whereBetween('link_clicks.created_at', [$lastMonth, $lastMonth->copy()->endOfMonth()])
+            ->sum('links.sponsored_rate');
             
-        $lastMonthRevenue = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->count() * 0.05;
+        $lastMonthAffiliate = $user->links()
+            ->where('link_type', 'affiliate')
+            ->where('is_active', true)
+            ->get()
+            ->sum(function($link) use ($lastMonth) {
+                $monthlyClicks = LinkClick::where('link_id', $link->id)
+                    ->whereBetween('created_at', [$lastMonth, $lastMonth->copy()->endOfMonth()])
+                    ->count();
+                
+                $estimatedConversionRate = 0.02;
+                return $monthlyClicks * $link->estimated_value * ($link->commission_rate / 100) * $estimatedConversionRate;
+            });
             
+        $lastMonthRevenue = $lastMonthSponsored + $lastMonthAffiliate;
         $revenuePercentageChange = $this->calculatePercentageChange($monthlyRevenue, $lastMonthRevenue);
         
-        // Conversion rate
-        $conversionRate = $totalLinksCount > 0 ? round(($activeLinksCount / $totalLinksCount) * 100) : 0;
+        // Revenue breakdown by type
+        $revenueByType = [
+            'affiliate' => $affiliateEstimatedRevenue,
+            'sponsored' => $sponsoredRevenue,
+            'product' => $productRevenue,
+        ];
+        
+        // Conversion metrics
+        $totalConversions = $user->links()->sum('conversions');
+        $conversionRate = $totalClicks > 0 ? round(($totalConversions / $totalClicks) * 100, 2) : 0;
+        
+        // Revenue per click
+        $revenuePerClick = $totalClicks > 0 ? round($monthlyRevenue / $totalClicks, 4) : 0;
+        
+        // Top performing links by revenue potential
+        $topRevenueLinks = $user->links()
+            ->where('is_active', true)
+            ->get()
+            ->map(function($link) use ($thisMonth) {
+                $monthlyClicks = LinkClick::where('link_id', $link->id)
+                    ->whereBetween('created_at', [$thisMonth, now()])
+                    ->count();
+                
+                // Calculate revenue based on link type
+                $revenue = 0;
+                switch ($link->link_type) {
+                    case 'sponsored':
+                        $revenue = $monthlyClicks * $link->sponsored_rate;
+                        break;
+                    case 'affiliate':
+                        $revenue = $monthlyClicks * $link->estimated_value * ($link->commission_rate / 100) * 0.02;
+                        break;
+                    case 'product':
+                        $revenue = $link->total_revenue;
+                        break;
+                }
+                
+                return [
+                    'link' => $link,
+                    'revenue' => $revenue,
+                    'clicks' => $monthlyClicks,
+                    'conversions' => $link->conversions,
+                    'conversion_rate' => $monthlyClicks > 0 ? round(($link->conversions / $monthlyClicks) * 100, 2) : 0,
+                    'revenue_per_click' => $monthlyClicks > 0 ? round($revenue / $monthlyClicks, 4) : 0,
+                ];
+            })
+            ->sortByDesc('revenue')
+            ->take(5)
+            ->values();
         
         // Daily analytics for chart (last 7 days)
         $dailyClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
@@ -95,7 +186,7 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('date');
         
-        // Fill in missing days with 0 clicks (7 days)
+        // Fill in missing days with 0 clicks
         $chartData = [];
         $chartLabels = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -105,29 +196,23 @@ class DashboardController extends Controller
             $chartData[] = $dailyClicks->get($date)?->clicks ?? 0;
         }
 
-        // Daily analytics for chart (last 30 days)
-        $dailyClicks30d = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->where('created_at', '>=', now()->subDays(30))
-            ->select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('COUNT(*) as clicks')
-            )
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        // 30-day chart data
+        // In your DashboardController.php, replace the 30-day chart section with:
+$chartData30d = [];
+$chartLabels30d = [];
+for ($i = 29; $i >= 0; $i--) {
+    $date = now()->subDays($i)->format('Y-m-d');
+    $dayName = now()->subDays($i)->format('M j');
+    $chartLabels30d[] = $dayName;
+    
+    // Get actual clicks for this date
+    $dayClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+        ->whereDate('created_at', now()->subDays($i))
+        ->count();
+    $chartData30d[] = $dayClicks;
+}
         
-        // Fill in missing days with 0 clicks (30 days)
-        $chartData30d = [];
-        $chartLabels30d = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $dayName = now()->subDays($i)->format('M j');
-            $chartLabels30d[] = $dayName;
-            $chartData30d[] = $dailyClicks30d->get($date)?->clicks ?? 0;
-        }
-        
-        // Top performing links
+        // Top performing links (basic version for compatibility)
         $topLinks = $user->links()
             ->where('is_active', true)
             ->orderBy('clicks', 'desc')
@@ -140,13 +225,15 @@ class DashboardController extends Controller
             'activeLinksCount',
             'totalClicks',
             'profileViews',
-            'profileViewsToday',
             'profileViewsPercentageChange',
             'clicksPercentageChange',
             'todayClicks',
             'monthlyRevenue',
             'revenuePercentageChange',
             'conversionRate',
+            'revenuePerClick',
+            'revenueByType',
+            'topRevenueLinks',
             'chartData',
             'chartLabels',
             'chartData30d',
@@ -162,11 +249,22 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
+        $todayRevenue = LinkClick::whereIn('link_id', function($query) use ($user) {
+                $query->select('id')
+                    ->from('links')
+                    ->where('user_id', $user->id)
+                    ->where('link_type', 'sponsored');
+            })
+            ->join('links', 'link_clicks.link_id', '=', 'links.id')
+            ->whereDate('link_clicks.created_at', today())
+            ->sum('links.sponsored_rate');
+        
         $data = [
             'total_clicks' => $user->links()->sum('clicks'),
             'today_clicks' => LinkClick::whereIn('link_id', $user->links()->pluck('id'))
                 ->whereDate('created_at', today())
                 ->count(),
+            'today_revenue' => $todayRevenue,
             'active_links' => $user->links()->where('is_active', true)->count(),
             'profile_views' => LinkClick::whereIn('link_id', $user->links()->pluck('id'))
                 ->distinct('ip_address')
