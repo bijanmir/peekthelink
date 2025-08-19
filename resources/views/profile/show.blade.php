@@ -174,7 +174,7 @@
                     <p class="text-gray-700 text-lg leading-relaxed mb-8 max-w-md mx-auto">
                         {{ $user->bio }}
                     </p>
-                @endif
+                @endif               
             </div>
 
             {{-- Links Grid --}}

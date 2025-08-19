@@ -1,15 +1,20 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
             <div>
-                <h2 class="font-bold text-2xl text-gray-900 leading-tight">
+                <h2 class="font-black text-3xl text-gray-900 leading-tight flex items-center">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
                     Revenue Analytics Dashboard
                 </h2>
-                <p class="text-gray-600 mt-1">Track your earnings and performance in real-time</p>
+                <p class="text-gray-600 mt-2 ml-14">Track your earnings and performance in real-time</p>
             </div>
-            <div class="hidden md:flex space-x-3">
+            <div class="flex space-x-3">
                 <a href="{{ route('links.create') }}" 
-                   class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center">
+                   class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-5 rounded-xl transition duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
@@ -17,7 +22,7 @@
                 </a>
                 <a href="{{ route('profile.show', $user->username) }}" 
                    target="_blank"
-                   class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center">
+                   class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-5 rounded-xl transition duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M14 6h6m0 0v6m0-6L10 16"></path>
                     </svg>
@@ -82,26 +87,101 @@
     <div class="py-8 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen px-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            <!-- Revenue Overview Header -->
+            <!-- Enhanced Revenue Overview Header -->
             <div class="mb-8 slide-up">
-                <div class="revenue-gradient rounded-2xl p-6 text-white relative overflow-hidden">
-                    <div class="absolute inset-0 bg-black/10"></div>
+                <div class="revenue-gradient rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                    <!-- Background Pattern -->
+                    <div class="absolute inset-0 opacity-10">
+                        <svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100" height="100" fill="url(#grid)" />
+                        </svg>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
+                    <div class="absolute bottom-6 left-8 w-8 h-8 bg-white/20 rounded-full animate-bounce" style="animation-delay: 1s;"></div>
+                    <div class="absolute top-1/2 right-12 w-4 h-4 bg-white/15 rounded-full animate-ping" style="animation-delay: 2s;"></div>
+                    
                     <div class="relative z-10">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h2 class="text-3xl font-black mb-2">Revenue Dashboard</h2>
-                                <p class="text-white/90">Track your earnings and conversions in real-time</p>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <div class="w-2 h-2 bg-emerald-400 rounded-full live-indicator"></div>
-                                    <span class="text-sm">Live Tracking</span>
+                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                    </div>
+                                    <h2 class="text-4xl font-black tracking-tight">Revenue Dashboard</h2>
                                 </div>
-                                <div id="real-time-clock" class="text-2xl font-bold"></div>
-                                <div class="text-sm text-white/80">
-                                    <span class="earning-badge px-2 py-1 rounded-full text-xs font-bold">
-                                        ${{ number_format($monthlyRevenue ?? 0, 2) }} this month
-                                    </span>
+                                <p class="text-white/90 text-lg leading-relaxed max-w-md">
+                                    Track your earnings and conversions in real-time with advanced analytics
+                                </p>
+                                
+                                <!-- Quick Stats -->
+                                <div class="flex items-center space-x-6 mt-6">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                                        <span class="text-sm font-medium text-white/90">Live Tracking</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                        <span class="text-sm font-medium text-white/90">{{ $activeLinksCount ?? 0 }} Active Links</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Real-time Stats Panel -->
+                            <div class="lg:ml-8">
+                                <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                                    <div class="text-center mb-4">
+                                        <div class="flex items-center justify-center space-x-2 mb-2">
+                                            <svg class="w-5 h-5 text-emerald-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                <circle cx="10" cy="10" r="3"/>
+                                            </svg>
+                                            <span class="text-sm font-semibold text-white/90">Live Tracking</span>
+                                        </div>
+                                        <div id="real-time-clock" class="text-3xl font-black text-white mb-1"></div>
+                                        <div class="text-sm text-white/70">Current Time</div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-white/80">This Month</span>
+                                            <div class="earning-badge px-3 py-1 rounded-full">
+                                                <span class="text-sm font-black text-white">
+                                                    ${{ number_format($monthlyRevenue ?? 0, 2) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-white/80">Today's Clicks</span>
+                                            <span class="text-lg font-bold text-white">{{ $todayClicks ?? 0 }}</span>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-white/80">Conversion Rate</span>
+                                            <span class="text-lg font-bold text-emerald-300">{{ $conversionRate ?? 0 }}%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Bar for Monthly Goal -->
+                                    <div class="mt-4 pt-4 border-t border-white/20">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-xs text-white/70">Monthly Goal</span>
+                                            <span class="text-xs text-white/70">{{ min(round(($monthlyRevenue ?? 0) / 1000 * 100, 1), 100) }}%</span>
+                                        </div>
+                                        <div class="w-full bg-white/20 rounded-full h-2">
+                                            <div class="bg-gradient-to-r from-emerald-400 to-blue-400 h-2 rounded-full transition-all duration-1000" 
+                                                 style="width: {{ min(($monthlyRevenue ?? 0) / 1000 * 100, 100) }}%"></div>
+                                        </div>
+                                        <div class="text-xs text-white/60 mt-1">Target: $1,000/month</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -382,9 +462,9 @@
 
         // Chart data - Fixed PHP array handling
         const chartData7d   = {!! json_encode($chartData ?? [0,0,0,0,0,0,0]) !!};
-const chartLabels7d = {!! json_encode($chartLabels ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']) !!};
-const chartData30d  = {!! json_encode($chartData30d ?? array_fill(0, 30, 0)) !!};
-const chartLabels30d= {!! json_encode($chartLabels30d ?? []) !!};
+        const chartLabels7d = {!! json_encode($chartLabels ?? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']) !!};
+        const chartData30d  = {!! json_encode($chartData30d ?? array_fill(0, 30, 0)) !!};
+        const chartLabels30d= {!! json_encode($chartLabels30d ?? []) !!};
 
         let currentChart = null;
 

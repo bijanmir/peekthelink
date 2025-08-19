@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>LinkBio - Your All-in-One Link-in-Bio Solution</title>
+    <title>PeekTheLink - Your All-in-One Link-in-Bio Solution</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -101,6 +101,25 @@
             from, to { border-color: transparent; }
             50% { border-color: #667eea; }
         }
+
+        .blob {
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: blob-morph 10s infinite, blob-move 20s infinite;
+        }
+
+        @keyframes blob-morph {
+            0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+            25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
+            50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+            75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+        }
+
+        @keyframes blob-move {
+            0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+            33% { transform: translateX(30px) translateY(-50px) rotate(120deg); }
+            66% { transform: translateX(-20px) translateY(20px) rotate(240deg); }
+        }
     </style>
 </head>
 <body class="font-inter antialiased">
@@ -119,10 +138,11 @@
                     <div class="flex-shrink-0 flex items-center">
                         <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center glow">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                         </div>
-                        <span class="ml-3 text-2xl font-bold gradient-text">LinkBio</span>
+                        <span class="ml-3 text-2xl font-bold gradient-text">PeekTheLink</span>
                     </div>
                 </div>
                 
@@ -130,7 +150,7 @@
                     <div class="ml-10 flex items-baseline space-x-8">
                         <a href="#features" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Features</a>
                         <a href="#how-it-works" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">How it Works</a>
-                        <a href="#pricing" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Pricing</a>
+                        <a href="#demo" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Demo</a>
                     </div>
                 </div>
                 
@@ -147,7 +167,7 @@
                         </a>
                         <a href="{{ route('register') }}" 
                            class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 glow">
-                            Get Started Free
+                            Start Free
                         </a>
                     @endauth
                 </div>
@@ -168,7 +188,7 @@
                 </h1>
                 
                 <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto fade-in-up stagger-2">
-                    Create a stunning landing page that showcases all your content. Perfect for creators, businesses, and influencers.
+                    Create a stunning landing page that showcases all your content. Perfect for creators, businesses, and influencers. <strong>Completely free, forever.</strong>
                 </p>
                 
                 <!-- CTA Buttons -->
@@ -190,18 +210,28 @@
                     @endauth
                 </div>
                 
+                <!-- Free Badge -->
+                <div class="mb-8 fade-in-up stagger-4">
+                    <span class="inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        100% Free Forever - No Hidden Fees
+                    </span>
+                </div>
+                
                 <!-- Stats -->
-                <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto fade-in-up stagger-4">
+                <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto fade-in-up stagger-5">
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-purple-600 mb-2">10K+</div>
-                        <div class="text-gray-600">Active Users</div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2">15K+</div>
+                        <div class="text-gray-600">Happy Users</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-blue-600 mb-2">500K+</div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2">750K+</div>
                         <div class="text-gray-600">Links Created</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-green-600 mb-2">1M+</div>
+                        <div class="text-3xl font-bold text-green-600 mb-2">2M+</div>
                         <div class="text-gray-600">Clicks Tracked</div>
                     </div>
                 </div>
@@ -245,7 +275,7 @@
                     <span class="gradient-text">Modern Creators</span>
                 </h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Everything you need to showcase your content and grow your audience
+                    Everything you need to showcase your content and grow your audience - completely free
                 </p>
             </div>
             
@@ -258,12 +288,14 @@
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Unlimited Links</h3>
-                    <p class="text-gray-600 mb-6">Add as many links as you want. No restrictions, no limits. Share everything that matters to your audience.</p>
+                    <p class="text-gray-600 mb-6">Add as many links as you want. No restrictions, no limits. Share everything that matters to your audience - all for free.</p>
                     <div class="flex items-center text-purple-600 font-semibold">
-                        <span>Learn more</span>
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
+                        <span class="inline-flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Always Free
+                        </span>
                     </div>
                 </div>
                 
@@ -275,12 +307,14 @@
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Advanced Analytics</h3>
-                    <p class="text-gray-600 mb-6">Track every click, understand your audience, and optimize your content strategy with detailed insights.</p>
+                    <p class="text-gray-600 mb-6">Track every click, understand your audience, and optimize your content strategy with detailed insights - no premium required.</p>
                     <div class="flex items-center text-green-600 font-semibold">
-                        <span>Learn more</span>
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
+                        <span class="inline-flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Always Free
+                        </span>
                     </div>
                 </div>
                 
@@ -292,12 +326,14 @@
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Custom Themes</h3>
-                    <p class="text-gray-600 mb-6">Personalize your page with beautiful themes, custom colors, and your own branding elements.</p>
+                    <p class="text-gray-600 mb-6">Personalize your page with beautiful themes, custom colors, and your own branding elements - all included free.</p>
                     <div class="flex items-center text-pink-600 font-semibold">
-                        <span>Learn more</span>
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
+                        <span class="inline-flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Always Free
+                        </span>
                     </div>
                 </div>
             </div>
@@ -313,7 +349,7 @@
                     <span class="gradient-text">3 Simple Steps</span>
                 </h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Create your LinkBio page in minutes, not hours
+                    Create your PeekTheLink page in minutes, not hours - and it's completely free
                 </p>
             </div>
             
@@ -326,8 +362,8 @@
                         </div>
                         <div class="absolute -top-4 -right-4 w-8 h-8 bg-yellow-400 rounded-full animate-bounce"></div>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Create Account</h3>
-                    <p class="text-gray-600 text-lg">Sign up for free and choose your unique username that represents your brand.</p>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Create Free Account</h3>
+                    <p class="text-gray-600 text-lg">Sign up for free and choose your unique username that represents your brand. No credit card required.</p>
                 </div>
                 
                 <!-- Step 2 -->
@@ -339,7 +375,7 @@
                         <div class="absolute -top-4 -right-4 w-8 h-8 bg-pink-400 rounded-full animate-bounce" style="animation-delay: 0.5s;"></div>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Add Your Links</h3>
-                    <p class="text-gray-600 text-lg">Add links to your social media, website, store, portfolio, and anything else you want to share.</p>
+                    <p class="text-gray-600 text-lg">Add unlimited links to your social media, website, store, portfolio, and anything else you want to share.</p>
                 </div>
                 
                 <!-- Step 3 -->
@@ -351,7 +387,7 @@
                         <div class="absolute -top-4 -right-4 w-8 h-8 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 1s;"></div>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Share & Grow</h3>
-                    <p class="text-gray-600 text-lg">Use your LinkBio URL everywhere and watch your audience engage with all your content.</p>
+                    <p class="text-gray-600 text-lg">Use your PeekTheLink URL everywhere and watch your audience engage with all your content for free.</p>
                 </div>
             </div>
         </div>
@@ -366,7 +402,7 @@
                     <span class="gradient-text">Action</span>
                 </h2>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    This is what your LinkBio page will look like
+                    This is what your PeekTheLink page will look like - completely free
                 </p>
             </div>
             
@@ -399,6 +435,53 @@
         </div>
     </section>
 
+    <!-- Free Forever Section -->
+    <section class="py-20 bg-gradient-to-br from-green-50 to-emerald-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                    Why Is PeekTheLink
+                    <span class="gradient-text">Completely Free?</span>
+                </h2>
+                <p class="text-xl text-gray-600 mb-12">
+                    We believe everyone should have access to powerful link-in-bio tools, regardless of budget. No hidden fees, no premium tiers, no limitations.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                        <div class="w-12 h-12 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">No Hidden Costs</h3>
+                        <p class="text-gray-600">Every feature is included free forever. No surprise charges.</p>
+                    </div>
+                    
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">No Limitations</h3>
+                        <p class="text-gray-600">Unlimited links, unlimited clicks, unlimited possibilities.</p>
+                    </div>
+                    
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
+                        <div class="w-12 h-12 bg-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">No Ads</h3>
+                        <p class="text-gray-600">Clean, professional pages with no advertisements or branding.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="py-20 bg-gradient-to-br from-purple-600 to-blue-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -406,7 +489,7 @@
                 Ready to Get Started?
             </h2>
             <p class="text-xl md:text-2xl text-purple-100 mb-12 max-w-3xl mx-auto">
-                Join thousands of creators who are already using LinkBio to grow their audience
+                Join thousands of creators who are already using PeekTheLink to grow their audience - completely free
             </p>
             
             @auth
@@ -420,6 +503,12 @@
                     Start Building for Free
                 </a>
             @endauth
+            
+            <div class="mt-8">
+                <p class="text-purple-200 text-lg">
+                    ✓ No credit card required &nbsp;•&nbsp; ✓ Free forever &nbsp;•&nbsp; ✓ Setup in 2 minutes
+                </p>
+            </div>
         </div>
     </section>
 
@@ -430,16 +519,17 @@
                 <div class="flex items-center justify-center mb-6">
                     <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center glow">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
                     </div>
-                    <span class="ml-3 text-3xl font-bold gradient-text">LinkBio</span>
+                    <span class="ml-3 text-3xl font-bold gradient-text">PeekTheLink</span>
                 </div>
                 <p class="text-gray-400 text-lg mb-8">
                     Made with ❤️ for creators, influencers, and businesses worldwide
                 </p>
                 <p class="text-gray-500">
-                    &copy; {{ date('Y') }} LinkBio. All rights reserved.
+                    &copy; {{ date('Y') }} PeekTheLink. All rights reserved. Forever free.
                 </p>
             </div>
         </div>
