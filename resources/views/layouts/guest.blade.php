@@ -50,23 +50,6 @@
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
     
-    <!-- Structured Data for Profile Pages -->
-    @if(isset($user) && request()->route()->getName() === 'profile.show')
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "ProfilePage",
-        "mainEntity": {
-            "@type": "Person",
-            "name": "{{ $user->display_name ?: $user->name }}",
-            "alternateName": "{{ $user->username }}",
-            "description": "{{ $user->bio ?? 'Check out my links on ' . config('app.name', 'PeekTheLink') }}",
-            "url": "{{ route('profile.show', $user->username) }}"
-        }
-    }
-    </script>
-    @endif
-    
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
