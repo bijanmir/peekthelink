@@ -50,6 +50,7 @@ Route::get('/test-api', function() {
 // Authenticated routes - MUST come before public profile routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/dashboard/realtime', [DashboardController::class, 'realtimeData'])->name('dashboard.realtime');
     
     // Links management
     Route::resource('links', LinksController::class);
