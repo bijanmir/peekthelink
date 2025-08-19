@@ -55,7 +55,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Handle link redirects with enhanced tracking
+     * Handle link redirects with enhanced tracking AND automatic revenue calculation
      */
     public function redirect(User $user, Link $link, Request $request)
     {
@@ -80,6 +80,9 @@ class ProfileController extends Controller
         // Increment the simple click counter on the link
         $link->increment('clicks');
 
+        // **NEW: Update revenue automatically based on link type**
+        $this->updateAutomaticRevenue($link);
+
         // Handle different URL formats
         $url = $link->url;
         
@@ -100,7 +103,55 @@ class ProfileController extends Controller
     }
 
     /**
-     * API endpoint to get link performance data
+     * **NEW: Update revenue automatically based on link type, clicks, and conversions**
+     */
+    private function updateAutomaticRevenue(Link $link)
+    {
+        try {
+            $newRevenue = 0;
+
+            switch ($link->link_type) {
+                case 'affiliate':
+                    // Revenue = conversions × estimated_value × commission_rate
+                    if ($link->conversions > 0 && $link->estimated_value && $link->commission_rate) {
+                        $newRevenue = $link->conversions * $link->estimated_value * ($link->commission_rate / 100);
+                    }
+                    break;
+
+                case 'product':
+                    // Revenue = conversions × product_price (estimated_value)
+                    if ($link->conversions > 0 && $link->estimated_value) {
+                        $newRevenue = $link->conversions * $link->estimated_value;
+                    }
+                    break;
+
+                case 'sponsored':
+                    // Revenue = clicks × sponsored_rate
+                    if ($link->sponsored_rate) {
+                        $newRevenue = $link->clicks * $link->sponsored_rate;
+                    }
+                    break;
+
+                case 'regular':
+                default:
+                    // No revenue for regular links
+                    $newRevenue = 0;
+                    break;
+            }
+
+            // Update the total revenue if it's different
+            if ($link->total_revenue != $newRevenue) {
+                $link->update(['total_revenue' => $newRevenue]);
+                Log::info("Updated revenue for link {$link->id}: {$link->title} - New revenue: ${$newRevenue}");
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Failed to calculate automatic revenue for link ' . $link->id . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * API endpoint to get link performance data (ENHANCED with revenue data)
      */
     public function linkPerformance(User $user, Link $link, Request $request)
     {
@@ -111,6 +162,10 @@ class ProfileController extends Controller
 
         $startDate = $request->get('start_date', now()->subDays(30));
         $endDate = $request->get('end_date', now());
+
+        // **NEW: Recalculate revenue to ensure it's up to date**
+        $this->updateAutomaticRevenue($link);
+        $link->refresh();
 
         // Get detailed analytics for this specific link
         $analytics = [
@@ -153,9 +208,97 @@ class ProfileController extends Controller
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get(),
+
+            // **NEW: Revenue analytics**
+            'revenue_data' => [
+                'total_revenue' => $link->total_revenue,
+                'total_conversions' => $link->conversions,
+                'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
+                'revenue_per_click' => $link->clicks > 0 ? round($link->total_revenue / $link->clicks, 4) : 0,
+                'revenue_per_conversion' => $link->conversions > 0 ? round($link->total_revenue / $link->conversions, 2) : 0,
+                'link_type' => $link->link_type,
+                'commission_rate' => $link->commission_rate,
+                'estimated_value' => $link->estimated_value,
+                'sponsored_rate' => $link->sponsored_rate,
+            ],
         ];
 
         return response()->json($analytics);
+    }
+
+    /**
+     * **NEW: Manually track a conversion (this will trigger revenue recalculation)**
+     */
+    public function trackConversion(Request $request, User $user, Link $link)
+    {
+        // Ensure the user owns the link
+        if ($link->user_id !== $user->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'conversions' => 'required|integer|min:0',
+        ]);
+
+        // Update conversions count
+        $link->update(['conversions' => $request->conversions]);
+
+        // Recalculate revenue based on new conversion count
+        $this->updateAutomaticRevenue($link);
+
+        // Refresh the link data
+        $link->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conversion tracked successfully',
+            'total_conversions' => $link->conversions,
+            'total_revenue' => $link->total_revenue,
+            'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
+        ]);
+    }
+
+    /**
+     * **NEW: Get comprehensive revenue analytics for all user links**
+     */
+    public function revenueAnalytics(User $user, Request $request)
+    {
+        $startDate = $request->get('start_date', now()->subDays(30));
+        $endDate = $request->get('end_date', now());
+
+        // Recalculate revenue for all user links
+        $links = $user->links;
+        foreach ($links as $link) {
+            $this->updateAutomaticRevenue($link);
+        }
+
+        // Get revenue breakdown by link type
+        $revenueByType = $user->links()
+            ->select('link_type', \DB::raw('SUM(total_revenue) as total_revenue'), \DB::raw('SUM(conversions) as total_conversions'), \DB::raw('SUM(clicks) as total_clicks'))
+            ->groupBy('link_type')
+            ->get();
+
+        // Get top performing links by revenue
+        $topRevenueLinks = $user->links()
+            ->where('total_revenue', '>', 0)
+            ->orderBy('total_revenue', 'desc')
+            ->limit(10)
+            ->get(['id', 'title', 'total_revenue', 'conversions', 'clicks', 'link_type']);
+
+        // Calculate totals
+        $totalRevenue = $user->links()->sum('total_revenue');
+        $totalConversions = $user->links()->sum('conversions');
+        $totalClicks = $user->links()->sum('clicks');
+
+        return response()->json([
+            'total_revenue' => $totalRevenue,
+            'total_conversions' => $totalConversions,
+            'total_clicks' => $totalClicks,
+            'overall_conversion_rate' => $totalClicks > 0 ? round(($totalConversions / $totalClicks) * 100, 2) : 0,
+            'revenue_per_click' => $totalClicks > 0 ? round($totalRevenue / $totalClicks, 4) : 0,
+            'revenue_by_type' => $revenueByType,
+            'top_revenue_links' => $topRevenueLinks,
+        ]);
     }
 
     /**
@@ -224,14 +367,18 @@ class ProfileController extends Controller
     }
 
     /**
-     * Export analytics data
+     * Export analytics data (ENHANCED with revenue data)
      */
     public function exportAnalytics(User $user, Request $request)
     {
-        // This would generate CSV/Excel export of analytics data
         $format = $request->get('format', 'csv');
         $startDate = $request->get('start_date', now()->subDays(30));
         $endDate = $request->get('end_date', now());
+
+        // Recalculate revenue for all links before export
+        foreach ($user->links as $link) {
+            $this->updateAutomaticRevenue($link);
+        }
 
         // Get comprehensive analytics data
         $data = [
@@ -245,6 +392,16 @@ class ProfileController extends Controller
                 ->with('link:id,title,url')
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->get(),
+
+            // **NEW: Revenue data**
+            'revenue_summary' => [
+                'total_revenue' => $user->links()->sum('total_revenue'),
+                'total_conversions' => $user->links()->sum('conversions'),
+                'revenue_by_link' => $user->links()
+                    ->where('total_revenue', '>', 0)
+                    ->get(['title', 'url', 'link_type', 'total_revenue', 'conversions', 'clicks'])
+                    ->toArray(),
+            ],
         ];
 
         // Return appropriate format
@@ -253,13 +410,41 @@ class ProfileController extends Controller
         }
         
         // For CSV export, you'd use a package like League/CSV
-        // This is a simplified version
         return response()->json([
             'message' => 'Export functionality to be implemented',
             'data_count' => [
                 'profile_views' => $data['profile_views']->count(),
                 'link_clicks' => $data['link_clicks']->count(),
+                'total_revenue' => $data['revenue_summary']['total_revenue'],
             ]
         ]);
+    }
+
+    /**
+     * **NEW: Get link statistics with automatic revenue calculation**
+     */
+    public function getLinkStats(Link $link)
+    {
+        // Ensure the user owns the link
+        if ($link->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Recalculate revenue to ensure it's up to date
+        $this->updateAutomaticRevenue($link);
+        $link->refresh();
+
+        $stats = [
+            'total_clicks' => $link->clicks,
+            'total_conversions' => $link->conversions,
+            'total_revenue' => $link->total_revenue,
+            'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
+            'revenue_per_click' => $link->clicks > 0 ? round($link->total_revenue / $link->clicks, 4) : 0,
+            'revenue_per_conversion' => $link->conversions > 0 ? round($link->total_revenue / $link->conversions, 2) : 0,
+            'link_type' => $link->link_type,
+            'recent_clicks' => $link->clicks()->where('created_at', '>=', now()->subDays(30))->count(),
+        ];
+
+        return response()->json($stats);
     }
 }

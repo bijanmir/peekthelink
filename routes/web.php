@@ -90,3 +90,9 @@ Route::get('/{user:username}', [ProfileController::class, 'show'])
 // Simplified link redirect route
 Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])
     ->name('profile.link');
+
+    Route::middleware('auth')->group(function () {
+    Route::post('/users/{user}/links/{link}/conversions', [ProfileController::class, 'trackConversion']);
+    Route::get('/users/{user}/revenue-analytics', [ProfileController::class, 'revenueAnalytics']);
+    Route::get('/links/{link}/stats', [ProfileController::class, 'getLinkStats']);
+});
