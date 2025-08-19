@@ -7,6 +7,7 @@ use App\Models\LinkClick;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -14,57 +15,75 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Get user's links
-        $links = $user->links()->orderBy('order')->get();
+        // Date ranges
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+        $thisWeek = Carbon::now()->startOfWeek();
+        $lastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $thisMonth = Carbon::now()->startOfMonth();
+        $lastMonth = Carbon::now()->subMonth()->startOfMonth();
         
-        // Calculate total clicks
+        // Basic metrics (works with current database)
+        $totalLinksCount = $user->links()->count();
+        $activeLinksCount = $user->links()->where('is_active', true)->count();
         $totalClicks = $user->links()->sum('clicks');
         
-        // Get recent clicks (last 7 days)
-        $recentClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
-        
-        // Calculate percentage change vs previous 7 days
-        $previousWeekClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereBetween('created_at', [now()->subDays(14), now()->subDays(7)])
-            ->count();
-        
-        $clicksPercentageChange = $previousWeekClicks > 0 
-            ? round((($recentClicks - $previousWeekClicks) / $previousWeekClicks) * 100, 1)
-            : ($recentClicks > 0 ? 100 : 0);
-        
-        // Calculate profile views percentage change
-        $currentWeekUniqueViews = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->where('created_at', '>=', now()->subDays(7))
+        // Profile views (simulate for now since ProfileView table doesn't exist yet)
+        $profileViews = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
             ->distinct('ip_address')
             ->count();
             
-        $previousWeekUniqueViews = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereBetween('created_at', [now()->subDays(14), now()->subDays(7)])
+        $profileViewsToday = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->whereDate('created_at', $today)
             ->distinct('ip_address')
             ->count();
             
-        $profileViewsPercentageChange = $previousWeekUniqueViews > 0 
-            ? round((($currentWeekUniqueViews - $previousWeekUniqueViews) / $previousWeekUniqueViews) * 100, 1)
-            : ($currentWeekUniqueViews > 0 ? 100 : 0);
+        // Calculate clicks this week vs last week
+        $clicksThisWeek = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->where('created_at', '>=', $thisWeek)
+            ->count();
+            
+        $clicksLastWeek = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->whereBetween('created_at', [$lastWeek, $thisWeek])
+            ->count();
         
-        // Calculate monthly revenue change
-        $thisMonthClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+        $clicksPercentageChange = $this->calculatePercentageChange($clicksThisWeek, $clicksLastWeek);
+        
+        // Profile views this week vs last week
+        $profileViewsThisWeek = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->where('created_at', '>=', $thisWeek)
+            ->distinct('ip_address')
+            ->count();
+            
+        $profileViewsLastWeek = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->whereBetween('created_at', [$lastWeek, $thisWeek])
+            ->distinct('ip_address')
+            ->count();
+            
+        $profileViewsPercentageChange = $this->calculatePercentageChange($profileViewsThisWeek, $profileViewsLastWeek);
+        
+        // Today's clicks
+        $todayClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->whereDate('created_at', $today)
+            ->count();
+        
+        // Monthly revenue (placeholder calculation)
+        $monthlyRevenue = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->count();
+            ->count() * 0.05; // $0.05 per click
             
-        $lastMonthClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+        $lastMonthRevenue = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
             ->whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
-            ->count();
+            ->count() * 0.05;
+            
+        $revenuePercentageChange = $this->calculatePercentageChange($monthlyRevenue, $lastMonthRevenue);
         
-        $revenuePercentageChange = $lastMonthClicks > 0 
-            ? round((($thisMonthClicks - $lastMonthClicks) / $lastMonthClicks) * 100, 1)
-            : ($thisMonthClicks > 0 ? 100 : 0);
+        // Conversion rate
+        $conversionRate = $totalLinksCount > 0 ? round(($activeLinksCount / $totalLinksCount) * 100) : 0;
         
-        // Get daily clicks for chart (last 7 days)
+        // Daily analytics for chart (last 7 days)
         $dailyClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
             ->where('created_at', '>=', now()->subDays(7))
             ->select(
@@ -76,7 +95,7 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('date');
         
-        // Fill in missing days with 0 clicks
+        // Fill in missing days with 0 clicks (7 days)
         $chartData = [];
         $chartLabels = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -85,49 +104,54 @@ class DashboardController extends Controller
             $chartLabels[] = $dayName;
             $chartData[] = $dailyClicks->get($date)?->clicks ?? 0;
         }
+
+        // Daily analytics for chart (last 30 days)
+        $dailyClicks30d = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as clicks')
+            )
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->keyBy('date');
         
-        // Get top performing links
+        // Fill in missing days with 0 clicks (30 days)
+        $chartData30d = [];
+        $chartLabels30d = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $dayName = now()->subDays($i)->format('M j');
+            $chartLabels30d[] = $dayName;
+            $chartData30d[] = $dailyClicks30d->get($date)?->clicks ?? 0;
+        }
+        
+        // Top performing links
         $topLinks = $user->links()
             ->where('is_active', true)
             ->orderBy('clicks', 'desc')
             ->take(5)
             ->get();
-        
-        // Profile performance metrics
-        $activeLinksCount = $user->links()->where('is_active', true)->count();
-        $totalLinksCount = $user->links()->count();
-        $conversionRate = $totalLinksCount > 0 ? round(($activeLinksCount / $totalLinksCount) * 100) : 0;
-        
-        // Calculate profile views (simulate with link clicks for now)
-        $profileViews = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->distinct('ip_address')
-            ->count();
-        
-        // Today's activity
-        $todayClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->whereDate('created_at', today())
-            ->count();
-        
-        // This month's revenue (placeholder - you can integrate with actual payment system)
-        $monthlyRevenue = $totalClicks * 0.05; // Example: $0.05 per click
-        
+
         return view('dashboard', compact(
             'user',
-            'links',
-            'totalClicks',
-            'recentClicks',
-            'clicksPercentageChange',
-            'chartData',
-            'chartLabels',
-            'topLinks',
-            'activeLinksCount',
             'totalLinksCount',
-            'conversionRate',
+            'activeLinksCount',
+            'totalClicks',
             'profileViews',
+            'profileViewsToday',
             'profileViewsPercentageChange',
+            'clicksPercentageChange',
             'todayClicks',
             'monthlyRevenue',
-            'revenuePercentageChange'
+            'revenuePercentageChange',
+            'conversionRate',
+            'chartData',
+            'chartLabels',
+            'chartData30d',
+            'chartLabels30d',
+            'topLinks'
         ));
     }
     
@@ -154,5 +178,17 @@ class DashboardController extends Controller
         ];
         
         return response()->json($data);
+    }
+    
+    /**
+     * Calculate percentage change between two values
+     */
+    protected function calculatePercentageChange($current, $previous)
+    {
+        if ($previous == 0) {
+            return $current > 0 ? 100 : 0;
+        }
+        
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 }
