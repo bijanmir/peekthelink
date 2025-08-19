@@ -3,11 +3,25 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinksController;
+use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController; // Add this import
 use Illuminate\Support\Facades\Route;
 
 // Home page
 Route::get('/', function () {
     return view('welcome');
+});
+
+// API routes - Put these FIRST to avoid conflicts
+Route::prefix('api')->group(function () {
+    Route::post('/check-username', [RegistrationController::class, 'checkUsername']);
+    Route::post('/check-email', [RegistrationController::class, 'checkEmail']);
+    Route::post('/check-password-strength', [RegistrationController::class, 'checkPasswordStrength']);
+    Route::post('/register', [RegistrationController::class, 'register']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store']); // Use existing login
+    Route::post('/password-reset', function() {
+        return response()->json(['success' => true, 'message' => 'Password reset link sent!']);
+    }); // Placeholder for now
 });
 
 // Authenticated routes - MUST come before public profile routes
@@ -47,6 +61,14 @@ Route::get('/test-redirect/{userId}/{linkId}', function($userId, $linkId) {
 Route::get('/{user:username}', [ProfileController::class, 'show'])
     ->name('profile.show');
 
-// Simplified link redirect route (remove the constraints temporarily)
+// Simplified link redirect route
 Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])
     ->name('profile.link');
+
+    // Test route to check if API is working
+Route::get('/test-api', function() {
+    return response()->json([
+        'message' => 'API is working!',
+        'csrf' => csrf_token()
+    ]);
+});

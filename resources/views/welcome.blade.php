@@ -27,22 +27,6 @@
             50% { background-position: 100% 50%; }
         }
         
-        .blob {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            animation: blob 7s infinite;
-        }
-        
-        @keyframes blob {
-            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: translate(0px, 0px) scale(1); }
-            14% { border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%; transform: translate(30px, -50px) scale(1.1); }
-            28% { border-radius: 50% 50% 30% 70% / 60% 30% 70% 40%; transform: translate(-20px, 20px) scale(0.9); }
-            42% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: translate(50px, -20px) scale(1.2); }
-            56% { border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%; transform: translate(-30px, 10px) scale(0.8); }
-            70% { border-radius: 50% 50% 30% 70% / 60% 30% 70% 40%; transform: translate(0px, -30px) scale(1.1); }
-            84% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: translate(20px, 20px) scale(0.9); }
-            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: translate(0px, 0px) scale(1); }
-        }
         
         .floating {
             animation: floating 6s ease-in-out infinite;
@@ -226,7 +210,7 @@
         
         <!-- Floating Phone Mockup -->
         <div class="absolute right-10 top-1/2 transform -translate-y-1/2 floating hidden xl:block">
-            <div class="w-80 h-96 bg-gradient-to-br from-purple-100 to-blue-100 rounded-3xl p-8 shadow-2xl">
+            <div class="w-80 h-full bg-gradient-to-br from-purple-100 to-blue-100 rounded-3xl p-8 shadow-2xl">
                 <div class="bg-white rounded-2xl h-full p-6 shadow-lg">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold pulse-slow">
@@ -236,13 +220,13 @@
                         <p class="text-sm text-gray-600 mb-6">Content Creator</p>
                         
                         <div class="space-y-3">
-                            <div class="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
+                            <div class="hover:cursor-pointer bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
                                 🌐 My Website
                             </div>
-                            <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
+                            <div class="hover:cursor-pointer bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
                                 📸 Instagram
                             </div>
-                            <div class="bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
+                            <div class="hover:cursor-pointer bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200">
                                 🎥 YouTube
                             </div>
                         </div>
