@@ -22,6 +22,29 @@ Route::prefix('api')->group(function () {
     Route::post('/password-reset', function() {
         return response()->json(['success' => true, 'message' => 'Password reset link sent!']);
     }); // Placeholder for now
+    
+    // Auth check route
+    Route::get('/auth-check', function() {
+        return response()->json([
+            'authenticated' => auth()->check(),
+            'user' => auth()->user() ? [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'username' => auth()->user()->username,
+                'email' => auth()->user()->email
+            ] : null
+        ]);
+    });
+});
+
+// Test route to check if API is working
+Route::get('/test-api', function() {
+    return response()->json([
+        'message' => 'API is working!',
+        'csrf' => csrf_token(),
+        'auth' => auth()->check(),
+        'user' => auth()->user()?->username
+    ]);
 });
 
 // Authenticated routes - MUST come before public profile routes
@@ -64,11 +87,3 @@ Route::get('/{user:username}', [ProfileController::class, 'show'])
 // Simplified link redirect route
 Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])
     ->name('profile.link');
-
-    // Test route to check if API is working
-Route::get('/test-api', function() {
-    return response()->json([
-        'message' => 'API is working!',
-        'csrf' => csrf_token()
-    ]);
-});

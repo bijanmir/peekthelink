@@ -447,16 +447,26 @@
             clearTimeout(usernameTimer);
             usernameTimer = setTimeout(async () => {
                 try {
+                    // Get CSRF token
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    
                     const response = await fetch('/api/check-username', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': token || '',
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: JSON.stringify({ username })
                     });
                     
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
+                    console.log('Username check response:', data); // Debug log
                     
                     if (data.available) {
                         status.innerHTML = `
@@ -684,23 +694,44 @@
             submitButton.disabled = true;
             
             try {
+                // Get CSRF token
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                console.log('CSRF Token:', token); // Debug log
+                
+                const requestData = {
+                    fullName,
+                    username,
+                    email,
+                    password,
+                    password_confirmation: confirmPassword,
+                    terms: terms ? 1 : 0
+                };
+                
+                console.log('Sending registration data:', requestData); // Debug log
+                
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token || '',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: JSON.stringify({
-                        fullName,
-                        username,
-                        email,
-                        password,
-                        password_confirmation: confirmPassword,
-                        terms: terms ? 1 : 0
-                    })
+                    credentials: 'same-origin', // Important: include cookies for session
+                    body: JSON.stringify(requestData)
                 });
                 
+                console.log('Response status:', response.status); // Debug log
+                console.log('Response headers:', response.headers); // Debug log
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response not OK:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Registration response:', data); // Debug log
                 
                 if (data.success) {
                     // Success! Store user data and continue to next step
@@ -709,7 +740,8 @@
                         username,
                         email,
                         userId: data.user.id,
-                        profileUrl: data.user.profile_url
+                        profileUrl: data.user.profile_url,
+                        isAuthenticated: data.auth_status
                     };
                     
                     submitButton.innerHTML = `
@@ -896,15 +928,26 @@
             `;
             button.disabled = true;
             
-            // Redirect to actual dashboard
-            setTimeout(() => {
-                if (registrationData.profileUrl) {
-                    window.location.href = '/dashboard'; // Use the redirect URL from registration response
-                } else {
-                    // Fallback
-                    window.location.href = '/dashboard';
-                }
-            }, 1500);
+            // First, let's verify the user is still authenticated
+            fetch('/api/auth-check', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin' // Important: include cookies
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Auth check:', data);
+                // Redirect to dashboard regardless
+                window.location.href = '/dashboard';
+            })
+            .catch(error => {
+                console.log('Auth check failed, redirecting anyway:', error);
+                // Still redirect to dashboard
+                window.location.href = '/dashboard';
+            });
         }
         
         // Initialize form interactions

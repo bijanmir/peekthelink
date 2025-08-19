@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends Controller
 {
@@ -20,7 +19,7 @@ class RegistrationController extends Controller
             $username = $request->input('username');
             
             // Log the request for debugging
-            \Log::info('Username check request', ['username' => $username]);
+            Log::info('Username check request', ['username' => $username]);
             
             // Basic validation first
             if (empty($username)) {
@@ -75,12 +74,12 @@ class RegistrationController extends Controller
                 $response['suggested'] = $this->generateSuggestions($username);
             }
             
-            \Log::info('Username check response', $response);
+            Log::info('Username check response', $response);
             
             return response()->json($response);
             
         } catch (\Exception $e) {
-            \Log::error('Username check error', ['error' => $e->getMessage()]);
+            Log::error('Username check error', ['error' => $e->getMessage()]);
             
             return response()->json([
                 'available' => false,
@@ -113,26 +112,39 @@ class RegistrationController extends Controller
      */
     public function checkEmail(Request $request)
     {
-        $email = $request->input('email');
-        
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255'
-        ]);
+        try {
+            $email = $request->input('email');
+            
+            if (empty($email)) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => 'Email is required'
+                ]);
+            }
 
-        if ($validator->fails()) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'valid' => false,
+                    'message' => 'Please enter a valid email address'
+                ]);
+            }
+
+            $exists = User::where('email', $email)->exists();
+
+            return response()->json([
+                'valid' => !$exists,
+                'available' => !$exists,
+                'message' => $exists ? 'Email is already registered' : 'Email is available'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Email check error', ['error' => $e->getMessage()]);
+            
             return response()->json([
                 'valid' => false,
-                'message' => $validator->errors()->first('email')
-            ]);
+                'message' => 'Unable to check email availability'
+            ], 500);
         }
-
-        $exists = User::where('email', $email)->exists();
-
-        return response()->json([
-            'valid' => !$exists,
-            'available' => !$exists,
-            'message' => $exists ? 'Email is already registered' : 'Email is available'
-        ]);
     }
 
     /**
@@ -140,58 +152,98 @@ class RegistrationController extends Controller
      */
     public function register(Request $request)
     {
-        // Comprehensive validation
-        $validator = Validator::make($request->all(), [
-            'fullName' => 'required|string|max:255|min:2',
-            'username' => [
-                'required',
-                'string',
-                'min:3',
-                'max:30',
-                'unique:users,username',
-                'regex:/^[a-zA-Z0-9_]+$/',
-                'not_in:admin,api,www,test,demo,support,help,contact,info,sales,marketing,team,blog,news,about,privacy,terms,legal,security,app,mobile,web,site,mail,email,ftp,root,user,guest,public,private,docs,documentation,guide,tutorial,example,sample,peekthelink,peek,link,links,url,redirect'
-            ],
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'terms' => 'required|accepted'
-        ], [
-            'fullName.required' => 'Please enter your full name',
-            'fullName.min' => 'Name must be at least 2 characters',
-            'username.required' => 'Please choose a username',
-            'username.min' => 'Username must be at least 3 characters',
-            'username.max' => 'Username cannot exceed 30 characters',
-            'username.unique' => 'This username is already taken',
-            'username.regex' => 'Username can only contain letters, numbers, and underscores',
-            'username.not_in' => 'This username is reserved and cannot be used',
-            'email.required' => 'Please enter your email address',
-            'email.email' => 'Please enter a valid email address',
-            'email.unique' => 'This email is already registered',
-            'password.required' => 'Please create a password',
-            'password.confirmed' => 'Password confirmation does not match',
-            'terms.accepted' => 'You must agree to the Terms of Service and Privacy Policy'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors(),
-                'message' => 'Please fix the errors below'
-            ], 422);
-        }
-
         try {
+            Log::info('Registration attempt started', ['data' => $request->all()]);
+
+            // Simple validation
+            $fullName = $request->input('fullName');
+            $username = $request->input('username');
+            $email = $request->input('email');
+            $password = $request->input('password');
+            $passwordConfirmation = $request->input('password_confirmation');
+            $terms = $request->input('terms');
+
+            // Validate required fields
+            if (empty($fullName)) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['fullName' => ['Please enter your full name']]
+                ], 422);
+            }
+
+            if (empty($username) || strlen($username) < 3) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['username' => ['Username must be at least 3 characters']]
+                ], 422);
+            }
+
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['email' => ['Please enter a valid email address']]
+                ], 422);
+            }
+
+            if (empty($password) || strlen($password) < 8) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['password' => ['Password must be at least 8 characters']]
+                ], 422);
+            }
+
+            if ($password !== $passwordConfirmation) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['password' => ['Password confirmation does not match']]
+                ], 422);
+            }
+
+            if (!$terms) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['terms' => ['You must agree to the Terms and Privacy Policy']]
+                ], 422);
+            }
+
+            // Check if username already exists
+            if (User::where('username', $username)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['username' => ['This username is already taken']]
+                ], 422);
+            }
+
+            // Check if email already exists
+            if (User::where('email', $email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['email' => ['This email is already registered']]
+                ], 422);
+            }
+
             // Create user
             $user = User::create([
-                'name' => $request->fullName,
-                'username' => $request->username,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'email_verified_at' => now(), // Auto-verify for demo, remove in production
+                'name' => $fullName,
+                'username' => $username,
+                'email' => $email,
+                'password' => Hash::make($password),
+                'email_verified_at' => now(), // Auto-verify for demo
             ]);
 
-            // Log the user in
-            auth()->login($user);
+            Log::info('User created successfully', ['user_id' => $user->id]);
+
+            // IMPORTANT: Log the user in immediately
+            auth()->login($user, true); // The 'true' enables "remember me"
+            
+            // Regenerate session to prevent session fixation
+            $request->session()->regenerate();
+
+            Log::info('User registered and logged in', [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'auth_check' => auth()->check()
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -203,10 +255,18 @@ class RegistrationController extends Controller
                     'email' => $user->email,
                     'profile_url' => url('/' . $user->username)
                 ],
-                'redirect_url' => route('dashboard')
+                'redirect_url' => route('dashboard'),
+                'auth_status' => auth()->check() // Debug info
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Registration error', [
+                'error' => $e->getMessage(), 
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Something went wrong. Please try again.',
@@ -220,32 +280,44 @@ class RegistrationController extends Controller
      */
     public function checkPasswordStrength(Request $request)
     {
-        $password = $request->input('password');
-        
-        $requirements = [
-            'length' => strlen($password) >= 8,
-            'uppercase' => preg_match('/[A-Z]/', $password),
-            'lowercase' => preg_match('/[a-z]/', $password),
-            'number' => preg_match('/[0-9]/', $password),
-            'special' => preg_match('/[^A-Za-z0-9]/', $password)
-        ];
+        try {
+            $password = $request->input('password');
+            
+            $requirements = [
+                'length' => strlen($password) >= 8,
+                'uppercase' => preg_match('/[A-Z]/', $password),
+                'lowercase' => preg_match('/[a-z]/', $password),
+                'number' => preg_match('/[0-9]/', $password),
+                'special' => preg_match('/[^A-Za-z0-9]/', $password)
+            ];
 
-        $score = array_sum($requirements);
-        
-        $strength = [
-            0 => 'very-weak',
-            1 => 'weak', 
-            2 => 'fair',
-            3 => 'good',
-            4 => 'strong',
-            5 => 'very-strong'
-        ];
+            $score = array_sum($requirements);
+            
+            $strength = [
+                0 => 'very-weak',
+                1 => 'weak', 
+                2 => 'fair',
+                3 => 'good',
+                4 => 'strong',
+                5 => 'very-strong'
+            ];
 
-        return response()->json([
-            'score' => $score,
-            'strength' => $strength[$score] ?? 'weak',
-            'requirements' => $requirements,
-            'valid' => $score >= 3 // Require at least 3 criteria
-        ]);
+            return response()->json([
+                'score' => $score,
+                'strength' => $strength[$score] ?? 'weak',
+                'requirements' => $requirements,
+                'valid' => $score >= 3 // Require at least 3 criteria
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Password strength check error', ['error' => $e->getMessage()]);
+            
+            return response()->json([
+                'score' => 0,
+                'strength' => 'weak',
+                'requirements' => [],
+                'valid' => false
+            ], 500);
+        }
     }
 }
