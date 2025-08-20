@@ -183,18 +183,20 @@
     <nav class="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center enhanced-glow">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Logo Section -->
+                <div class="flex items-center flex-shrink-0">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center enhanced-glow">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                         </div>
-                        <span class="ml-3 text-2xl font-bold gradient-text">PeekTheLink</span>
+                        <span class="ml-2 sm:ml-3 text-lg sm:text-2xl font-bold gradient-text">PeekTheLink</span>
                     </div>
                 </div>
                 
+                <!-- Desktop Navigation Menu -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
                         <a href="#features" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Features</a>
@@ -203,23 +205,62 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <!-- Right Side - Auth Buttons and Mobile Menu -->
+                <div class="flex items-center">
                     @auth
                         <a href="{{ route('dashboard') }}" 
-                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow">
+                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-3 sm:px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm sm:text-base">
                             Dashboard
                         </a>
                     @else
+                        <!-- Desktop Auth Buttons -->
+                        <div class="hidden sm:flex items-center space-x-4">
+                            <a href="{{ route('login') }}" 
+                               class="text-gray-600 hover:text-purple-600 px-4 py-2 text-sm font-medium transition-colors duration-200">
+                                Sign In
+                            </a>
+                            <a href="{{ route('register') }}" 
+                               class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow">
+                                Get Started
+                            </a>
+                        </div>
+                        
+                        <!-- Mobile: Just the Start button -->
+                        <div class="sm:hidden flex items-center space-x-3">
+                            <a href="{{ route('register') }}" 
+                               class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm">
+                                Get Started
+                            </a>
+                            <!-- Mobile Menu Toggle -->
+                            <button id="mobile-menu-toggle" class="text-gray-600 hover:text-purple-600 p-2 rounded-lg hover:bg-gray-100">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    @endauth
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-lg">
+            <div class="px-4 py-4 space-y-3">
+                <a href="#features" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Features</a>
+                <a href="#how-it-works" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">How it Works</a>
+                <a href="#demo" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Demo</a>
+                @guest
+                    <div class="pt-3">
                         <a href="{{ route('login') }}" 
-                           class="text-gray-600 hover:text-purple-600 px-4 py-2 text-sm font-medium transition-colors duration-200">
+                           class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 mb-3">
                             Sign In
                         </a>
                         <a href="{{ route('register') }}" 
-                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow">
+                           class="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 enhanced-glow">
                             Start Free
                         </a>
-                    @endauth
-                </div>
+                    </div>
+                @endguest
             </div>
         </div>
     </nav>
@@ -613,6 +654,27 @@
         // Observe all elements with fade-in-up class
         document.querySelectorAll('.fade-in-up').forEach(el => {
             observer.observe(el);
+        });
+    </script>
+      <script>
+        // Mobile menu toggle functionality (optional)
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuToggle && mobileMenu) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+                
+                // Close mobile menu when clicking on links
+                const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+                mobileMenuLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
         });
     </script>
 </body>
