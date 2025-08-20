@@ -39,6 +39,23 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
+    /* Link type badges */
+    .link-type-affiliate {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    }
+    
+    .link-type-product {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .link-type-sponsored {
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    }
+    
+    .link-type-regular {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    }
+    
     /* Animation keyframes */
     @keyframes slideUp {
         from { 
@@ -314,6 +331,10 @@
                                 <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="active">Active Only</button>
                                 <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="inactive">Inactive Only</button>
                                 <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="high-performance">High Performance</button>
+                                <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="affiliate">Affiliate Links</button>
+                                <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="product">Product Sales</button>
+                                <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="sponsored">Sponsored Content</button>
+                                <button class="filter-option w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" data-filter="regular">Regular Links</button>
                             </div>
                         </div>
                     </div>
@@ -368,7 +389,8 @@
                                  data-id="{{ $link->id }}" 
                                  data-active="{{ $link->is_active ? 'true' : 'false' }}"
                                  data-clicks="{{ $link->clicks }}"
-                                 data-title="{{ strtolower($link->title) }}">
+                                 data-title="{{ strtolower($link->title) }}"
+                                 data-link-type="{{ $link->link_type ?? 'regular' }}">
                                 
                                 <!-- Mobile Layout -->
                                 <div class="sm:hidden">
@@ -382,25 +404,56 @@
                                                 </svg>
                                             </div>
 
-                                            <!-- Link Icon -->
+                                            <!-- Link Icon with Type Indicator -->
                                             <div class="relative">
                                                 <div class="w-14 h-14 bg-gradient-to-br {{ $link->is_active ? 'from-emerald-400 to-emerald-600' : 'from-gray-400 to-gray-600' }} rounded-2xl flex items-center justify-center shadow-lg">
-                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                                                    </svg>
+                                                    @if(($link->link_type ?? 'regular') === 'affiliate')
+                                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                                        </svg>
+                                                    @elseif(($link->link_type ?? 'regular') === 'product')
+                                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                                        </svg>
+                                                    @elseif(($link->link_type ?? 'regular') === 'sponsored')
+                                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                                        </svg>
+                                                    @else
+                                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                                        </svg>
+                                                    @endif
                                                 </div>
-                                                @if($link->clicks > 100)
-                                                    <div class="absolute -top-2 -right-2 performance-badge text-xs font-bold text-white px-2 py-1 rounded-full">
-                                                        Hot
-                                                    </div>
-                                                @endif
+                                                
+                                                <!-- Link Type Badge - Always Show -->
+                                                <div class="absolute -top-2 -right-2 text-xs font-bold text-white px-2 py-1 rounded-full link-type-{{ $link->link_type ?? 'regular' }}">
+                                                    {{ ($link->link_type ?? 'regular') === 'affiliate' ? '💰' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'product' ? '🛍️' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'sponsored' ? '⭐' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'regular' ? '🔗' : '' }}
+                                                </div>
                                             </div>
 
-                                            <!-- Title and Status -->
+                                            <!-- Title and Link Type -->
                                             <div class="flex-1 min-w-0">
                                                 <h3 class="font-bold text-xl text-gray-900 truncate mb-2">{{ $link->title }}</h3>
-                                                <div class="flex items-center space-x-2">
-                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold {{ $link->is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                                                
+                                                <!-- Link Type Display - Prominent -->
+                                                <div class="flex flex-col space-y-2 mb-3">
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold w-fit
+                                                        {{ ($link->link_type ?? 'regular') === 'affiliate' ? 'bg-purple-100 text-purple-800 border border-purple-200' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'product' ? 'bg-green-100 text-green-800 border border-green-200' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'sponsored' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'regular' ? 'bg-gray-100 text-gray-800 border border-gray-200' : '' }}">
+                                                        
+                                                        {{ ($link->link_type ?? 'regular') === 'affiliate' ? '💰 Affiliate Link' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'product' ? '🛍️ Product Sale' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'sponsored' ? '⭐ Sponsored Content' : '' }}
+                                                        {{ ($link->link_type ?? 'regular') === 'regular' ? '🔗 Regular Link' : '' }}
+                                                    </span>
+                                                    
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold w-fit {{ $link->is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
                                                         <div class="w-2 h-2 rounded-full {{ $link->is_active ? 'bg-emerald-500' : 'bg-red-500' }} mr-2"></div>
                                                         {{ $link->is_active ? 'Live' : 'Paused' }}
                                                     </span>
@@ -466,6 +519,9 @@
                                             <div class="bg-blue-50 rounded-xl px-4 py-3 flex-1 mr-3">
                                                 <p class="text-3xl font-black text-blue-600">{{ number_format($link->clicks) }}</p>
                                                 <p class="text-sm text-blue-600 font-medium">clicks</p>
+                                                @if(($link->link_type ?? 'regular') !== 'regular')
+                                                    <p class="text-sm text-green-600 font-medium">{{ $link->conversions ?? 0 }} conversions</p>
+                                                @endif
                                             </div>
 
                                             <!-- Quick Actions -->
@@ -514,33 +570,54 @@
                                             </svg>
                                         </div>
 
-                                        <!-- Link Icon -->
+                                        <!-- Link Icon with Type Indicator -->
                                         <div class="relative mr-5">
-                                            <div class="w-14 h-14 bg-gradient-to-br {{ $link->is_active ? 'from-emerald-400 to-emerald-600' : 'from-gray-400 to-gray-600' }} rounded-2xl flex items-center justify-center shadow-lg">
-                                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                                                </svg>
+                                            <div class="w-16 h-16 bg-gradient-to-br {{ $link->is_active ? 'from-emerald-400 to-emerald-600' : 'from-gray-400 to-gray-600' }} rounded-2xl flex items-center justify-center shadow-lg">
+                                                @if(($link->link_type ?? 'regular') === 'affiliate')
+                                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                                    </svg>
+                                                @elseif(($link->link_type ?? 'regular') === 'product')
+                                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                                    </svg>
+                                                @elseif(($link->link_type ?? 'regular') === 'sponsored')
+                                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                                    </svg>
+                                                @endif
                                             </div>
-                                            @if($link->clicks > 100)
-                                                <div class="absolute -top-2 -right-2 performance-badge text-xs font-bold text-white px-2 py-1 rounded-full">
-                                                    Hot
-                                                </div>
-                                            @endif
+                                            
+                                            <!-- Link Type Badge - Always Show -->
+                                            <div class="absolute -top-2 -right-2 text-xs font-bold text-white px-2 py-1 rounded-full link-type-{{ $link->link_type ?? 'regular' }}">
+                                                {{ ($link->link_type ?? 'regular') === 'affiliate' ? '💰' : '' }}
+                                                {{ ($link->link_type ?? 'regular') === 'product' ? '🛍️' : '' }}
+                                                {{ ($link->link_type ?? 'regular') === 'sponsored' ? '⭐' : '' }}
+                                                {{ ($link->link_type ?? 'regular') === 'regular' ? '🔗' : '' }}
+                                            </div>
                                         </div>
 
                                         <!-- Link Content -->
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center space-x-3 mb-3">
                                                 <h3 class="font-bold text-xl text-gray-900 truncate">{{ $link->title }}</h3>
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $link->is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
-                                                    <div class="w-2 h-2 rounded-full {{ $link->is_active ? 'bg-emerald-500' : 'bg-red-500' }} mr-2"></div>
-                                                    {{ $link->is_active ? 'Live' : 'Paused' }}
+                                                
+                                                <!-- Link Type Display - Prominent -->
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold
+                                                    {{ ($link->link_type ?? 'regular') === 'affiliate' ? 'bg-purple-100 text-purple-800 border border-purple-200' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'product' ? 'bg-green-100 text-green-800 border border-green-200' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'sponsored' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'regular' ? 'bg-gray-100 text-gray-800 border border-gray-200' : '' }}">
+                                                    
+                                                    {{ ($link->link_type ?? 'regular') === 'affiliate' ? '💰 Affiliate Link (Commission-based)' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'product' ? '🛍️ Product Sale (Your own product)' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'sponsored' ? '⭐ Sponsored Content (Pay per click)' : '' }}
+                                                    {{ ($link->link_type ?? 'regular') === 'regular' ? '🔗 Regular Link (No revenue tracking)' : '' }}
                                                 </span>
-                                                @if($link->clicks > 100)
-                                                    <span class="performance-badge text-xs font-bold text-white px-2 py-1 rounded-full">
-                                                        High Performer
-                                                    </span>
-                                                @endif
                                             </div>
                                             
                                             <div class="space-y-2">
@@ -552,6 +629,26 @@
                                                 </p>
                                                 @if($link->description)
                                                     <p class="text-sm text-gray-500 truncate">{{ $link->description }}</p>
+                                                @endif
+                                            </div>
+                                            
+                                            <!-- Status and Performance -->
+                                            <div class="flex items-center space-x-4 mt-3">
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $link->is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-100 text-red-800 border border-red-200' }}">
+                                                    <div class="w-2 h-2 rounded-full {{ $link->is_active ? 'bg-emerald-500' : 'bg-red-500' }} mr-2"></div>
+                                                    {{ $link->is_active ? 'Live' : 'Paused' }}
+                                                </span>
+                                                
+                                                <span class="text-sm text-gray-600">{{ $link->clicks }} clicks</span>
+                                                
+                                                @if(($link->link_type ?? 'regular') !== 'regular')
+                                                    <span class="text-sm text-green-600 font-medium">{{ $link->conversions ?? 0 }} conversions</span>
+                                                @endif
+                                                
+                                                @if($link->clicks > 100)
+                                                    <span class="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                        High Performer
+                                                    </span>
                                                 @endif
                                             </div>
                                         </div>
@@ -782,6 +879,7 @@
                     linkItems.forEach(item => {
                         const isActive = item.getAttribute('data-active') === 'true';
                         const clicks = parseInt(item.getAttribute('data-clicks'));
+                        const linkType = item.getAttribute('data-link-type');
                         
                         let show = true;
                         
@@ -794,6 +892,18 @@
                                 break;
                             case 'high-performance':
                                 show = clicks > 50;
+                                break;
+                            case 'affiliate':
+                                show = linkType === 'affiliate';
+                                break;
+                            case 'product':
+                                show = linkType === 'product';
+                                break;
+                            case 'sponsored':
+                                show = linkType === 'sponsored';
+                                break;
+                            case 'regular':
+                                show = linkType === 'regular';
                                 break;
                             case 'all':
                             default:
@@ -852,6 +962,17 @@
                         sortBtn.querySelector('span').textContent = 'By Status';
                         break;
                     case 'status':
+                        // Sort by link type
+                        links.sort((a, b) => {
+                            const typeA = a.getAttribute('data-link-type');
+                            const typeB = b.getAttribute('data-link-type');
+                            const typeOrder = { 'affiliate': 1, 'product': 2, 'sponsored': 3, 'regular': 4 };
+                            return (typeOrder[typeA] || 5) - (typeOrder[typeB] || 5);
+                        });
+                        sortOrder = 'type';
+                        sortBtn.querySelector('span').textContent = 'By Type';
+                        break;
+                    case 'type':
                     default:
                         // Reset to default order
                         location.reload();
