@@ -359,7 +359,7 @@
         <!-- Links Grid -->
         <div class="space-y-4">
             @forelse($user->links->where('is_active', true)->sortBy('order') as $index => $link)
-                <a href="{{ route('profile.link.redirect', ['username' => $user->username, 'link' => $link->id]) }}" 
+<a href="{{ route('profile.link', [$user, $link]) }}"
                    class="link-card glass-card rounded-2xl p-6 block group ripple slide-up"
                    style="animation-delay: {{ 0.6 + ($index * 0.1) }}s;"
                    onclick="return handleLinkClick(this, event);">
