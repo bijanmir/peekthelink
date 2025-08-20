@@ -214,10 +214,10 @@ for ($i = 29; $i >= 0; $i--) {
         
         // Top performing links (basic version for compatibility)
         $topLinks = $user->links()
-            ->where('is_active', true)
-            ->orderBy('clicks', 'desc')
-            ->take(5)
-            ->get();
+    ->where('clicks', '>', 0)
+    ->orderByDesc('clicks')
+    ->limit(5)
+    ->get();
 
         return view('dashboard', compact(
             'user',

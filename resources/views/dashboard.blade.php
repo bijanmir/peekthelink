@@ -312,40 +312,121 @@
             </div>
 
             <!-- Top Performing Links -->
-            <div class="glass-card rounded-2xl p-6 slide-up">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-gray-900">Top Performing Links</h3>
-                    <span class="text-sm text-gray-500">By clicks</span>
+<div class="glass-card rounded-2xl p-6 slide-up">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold text-gray-900">Top Performing Links</h3>
+        <span class="text-sm text-gray-500">By clicks</span>
+    </div>
+    <div class="space-y-4">
+        @forelse($topLinks as $index => $link)
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <div class="flex items-center space-x-3">
+                <!-- Ranking Badge -->
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm
+                    {{ $index === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : '' }}
+                    {{ $index === 1 ? 'bg-gradient-to-br from-gray-400 to-gray-600' : '' }}
+                    {{ $index === 2 ? 'bg-gradient-to-br from-amber-600 to-yellow-700' : '' }}
+                    {{ $index > 2 ? 'bg-gradient-to-br from-blue-500 to-purple-600' : '' }}">
+                    @if($index === 0)
+                        🥇
+                    @elseif($index === 1)
+                        🥈
+                    @elseif($index === 2)
+                        🥉
+                    @else
+                        {{ $index + 1 }}
+                    @endif
                 </div>
-                <div class="space-y-4">
-                    @forelse($topLinks ?? [] as $index => $link)
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                {{ $index + 1 }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-medium text-gray-900 truncate">{{ $link->title }}</div>
-                                <div class="text-sm text-gray-500 truncate">{{ $link->url }}</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold text-gray-900">{{ number_format($link->clicks) }}</div>
-                            <div class="text-xs text-gray-500">clicks</div>
-                        </div>
+                
+                <!-- Link Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-gray-900 truncate flex items-center space-x-2">
+                        <span>{{ $link->title }}</span>
+                        
+                        <!-- Link Type Badge -->
+                        @if($link->link_type && $link->link_type !== 'regular')
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold
+                            {{ $link->link_type === 'affiliate' ? 'bg-purple-100 text-purple-800' : '' }}
+                            {{ $link->link_type === 'product' ? 'bg-green-100 text-green-800' : '' }}
+                            {{ $link->link_type === 'sponsored' ? 'bg-yellow-100 text-yellow-800' : '' }}">
+                            {{ $link->link_type === 'affiliate' ? '💰' : '' }}
+                            {{ $link->link_type === 'product' ? '🛍️' : '' }}
+                            {{ $link->link_type === 'sponsored' ? '⭐' : '' }}
+                        </span>
+                        @endif
+                        
+                        <!-- High Performer Badge -->
+                        @if($link->clicks > 100)
+                        <span class="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            🔥 Hot
+                        </span>
+                        @endif
                     </div>
-                    @empty
-                    <div class="empty-state text-center py-8 rounded-lg">
-                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                        </svg>
-                        <p class="text-gray-500 mb-2">No links yet</p>
-                        <p class="text-sm text-gray-400 mb-4">Create your first link to start tracking performance</p>
-                        <a href="{{ route('links.create') }}" class="text-blue-600 hover:text-blue-700 font-medium">Create your first link</a>
+                    <div class="text-sm text-gray-500 truncate">{{ $link->url }}</div>
+                    
+                    <!-- Conversion Info for Revenue Links -->
+                    @if($link->link_type && $link->link_type !== 'regular' && $link->conversions > 0)
+                    <div class="text-xs text-green-600 font-medium mt-1">
+                        {{ $link->conversions }} conversions 
+                        ({{ $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 1) : 0 }}% rate)
                     </div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
+            
+            <!-- Performance Metrics -->
+            <div class="text-right">
+                <div class="font-bold text-gray-900">{{ number_format($link->clicks) }}</div>
+                <div class="text-xs text-gray-500">clicks</div>
+                
+                <!-- Performance Indicator -->
+                @if($index === 0 && $link->clicks > 50)
+                <div class="text-xs text-green-600 font-medium mt-1">
+                    🚀 Top performer
+                </div>
+                @elseif($link->clicks > 20)
+                <div class="text-xs text-blue-600 font-medium mt-1">
+                    📈 Trending
+                </div>
+                @endif
+            </div>
+        </div>
+        @empty
+        <div class="empty-state text-center py-8 rounded-lg">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            </svg>
+            <p class="text-gray-500 mb-2">No performance data yet</p>
+            <p class="text-sm text-gray-400 mb-4">Your links need some clicks to appear here</p>
+            <div class="space-y-2">
+                <a href="{{ route('links.create') }}" class="block text-blue-600 hover:text-blue-700 font-medium">
+                    Create your first link
+                </a>
+                @if($links && $links->count() > 0)
+                <a href="{{ route('profile.show', Auth::user()->username) }}" 
+                   target="_blank"
+                   class="block text-emerald-600 hover:text-emerald-700 font-medium">
+                    Share your profile to get clicks
+                </a>
+                @endif
+            </div>
+        </div>
+        @endforelse
+    </div>
+    
+    <!-- View All Links Button -->
+    @if($topLinks && $topLinks->count() >= 5)
+    <div class="mt-6 pt-4 border-t border-gray-200">
+        <a href="{{ route('links.index') }}" 
+           class="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center justify-center">
+            View all links
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </a>
+    </div>
+    @endif
+</div>
         </div>
 
         <!-- Quick Actions -->
