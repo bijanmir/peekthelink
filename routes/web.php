@@ -38,6 +38,9 @@ Route::prefix('api')->group(function () {
 
     Route::get('/dashboard/realtime', [DashboardController::class, 'realtimeData'])->name('dashboard.realtime');
     Route::get('/dashboard/realtime-revenue', [DashboardController::class, 'realtimeRevenue']);
+    
+    // NEW: Profile-related API endpoints
+    Route::post('/profile/check-username', [ProfileController::class, 'checkUsername'])->name('api.profile.check-username');
 });
 
 // Test route to check if API is working
@@ -57,6 +60,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Links management
     Route::resource('links', LinksController::class);
     Route::post('/links/update-order', [LinksController::class, 'updateOrder'])->name('links.update-order');
+    
+    // NEW: Profile management routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // NEW: Profile image management (AJAX endpoints)
+    Route::post('/profile/upload-image', [ProfileController::class, 'uploadProfileImage'])->name('profile.upload-image');
+    Route::delete('/profile/remove-image', [ProfileController::class, 'removeProfileImage'])->name('profile.remove-image');
 });
 
 // Auth routes (login, register, etc.)
@@ -91,7 +103,7 @@ Route::get('/{user:username}', [ProfileController::class, 'show'])
 Route::get('/{user:username}/link/{link}', [ProfileController::class, 'redirect'])
     ->name('profile.link');
 
-    Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/links/{link}/conversions', [ProfileController::class, 'trackConversion']);
     Route::get('/users/{user}/revenue-analytics', [ProfileController::class, 'revenueAnalytics']);
     Route::get('/links/{link}/stats', [ProfileController::class, 'getLinkStats']);

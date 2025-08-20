@@ -7,7 +7,11 @@ use App\Models\Link;
 use App\Models\LinkClick;
 use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -19,7 +23,176 @@ class ProfileController extends Controller
     }
 
     /**
-     * Display the user's profile page
+     * Display the user's profile form.
+     */
+    public function edit(Request $request)
+    {
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Update the user's profile information.
+     */
+    public function update(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'username' => [
+                'required', 
+                'string', 
+                'max:50', 
+                'regex:/^[a-zA-Z0-9_-]+$/',
+                Rule::unique('users')->ignore($user->id)
+            ],
+            'email' => [
+                'required', 
+                'string', 
+                'lowercase', 
+                'email', 
+                'max:255', 
+                Rule::unique(User::class)->ignore($user->id)
+            ],
+            'bio' => ['nullable', 'string', 'max:500'],
+            'theme_color' => ['required', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'is_active' => ['boolean'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // 2MB max
+        ]);
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            // Delete old image if exists
+            if ($user->profile_image) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+
+            // Store new image
+            $imagePath = $request->file('profile_image')->store('profile-images', 'public');
+            $validated['profile_image'] = $imagePath;
+        }
+
+        // Handle checkbox for is_active
+        $validated['is_active'] = $request->has('is_active');
+
+        // Update user profile
+        $user->fill($validated);
+
+        // Reset email verification if email changed
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request)
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        // Delete profile image if exists
+        if ($user->profile_image) {
+            Storage::disk('public')->delete($user->profile_image);
+        }
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
+    }
+
+    /**
+     * Check username availability (AJAX endpoint)
+     */
+    public function checkUsername(Request $request)
+    {
+        $username = $request->input('username');
+        $currentUserId = Auth::id();
+        
+        if (empty($username)) {
+            return response()->json(['available' => false, 'message' => 'Username is required']);
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+            return response()->json(['available' => false, 'message' => 'Only letters, numbers, hyphens, and underscores allowed']);
+        }
+
+        $exists = User::where('username', $username)
+            ->when($currentUserId, function ($query) use ($currentUserId) {
+                return $query->where('id', '!=', $currentUserId);
+            })
+            ->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Username is already taken' : 'Username is available'
+        ]);
+    }
+
+    /**
+     * Upload profile image via AJAX
+     */
+    public function uploadProfileImage(Request $request)
+    {
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $user = Auth::user();
+
+        // Delete old image if exists
+        if ($user->profile_image) {
+            Storage::disk('public')->delete($user->profile_image);
+        }
+
+        // Store new image
+        $imagePath = $request->file('profile_image')->store('profile-images', 'public');
+        
+        $user->update(['profile_image' => $imagePath]);
+
+        return response()->json([
+            'success' => true,
+            'image_url' => Storage::url($imagePath),
+            'message' => 'Profile image updated successfully!'
+        ]);
+    }
+
+    /**
+     * Remove profile image
+     */
+    public function removeProfileImage(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->profile_image) {
+            Storage::disk('public')->delete($user->profile_image);
+            $user->update(['profile_image' => null]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile image removed successfully!'
+        ]);
+    }
+
+    /**
+     * Display the user's public profile page
      */
     public function show(User $user, Request $request)
     {
@@ -80,7 +253,7 @@ class ProfileController extends Controller
         // Increment the simple click counter on the link
         $link->increment('clicks');
 
-        // **NEW: Update revenue automatically based on link type**
+        // Update revenue automatically based on link type
         $this->updateAutomaticRevenue($link);
 
         // Handle different URL formats
@@ -91,20 +264,11 @@ class ProfileController extends Controller
             $url = 'https://' . $url;
         }
 
-        // Validate URL before redirect
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            abort(400, 'Invalid URL');
-        }
-
-        // Log the redirect for debugging
-        Log::info("Redirecting to: {$url} from link: {$link->title} (ID: {$link->id})");
-
+        // Redirect to the target URL
         return redirect()->away($url);
     }
 
-    /**
-     * **NEW: Update revenue automatically based on link type, clicks, and conversions**
-     */
+   
     private function updateAutomaticRevenue(Link $link)
     {
         try {
@@ -113,338 +277,39 @@ class ProfileController extends Controller
             switch ($link->link_type) {
                 case 'affiliate':
                     // Revenue = conversions × estimated_value × commission_rate
-                    if ($link->conversions > 0 && $link->estimated_value && $link->commission_rate) {
+                    if ($link->conversions > 0 && $link->estimated_value > 0 && $link->commission_rate > 0) {
                         $newRevenue = $link->conversions * $link->estimated_value * ($link->commission_rate / 100);
                     }
                     break;
 
                 case 'product':
                     // Revenue = conversions × product_price (estimated_value)
-                    if ($link->conversions > 0 && $link->estimated_value) {
+                    if ($link->conversions > 0 && $link->estimated_value > 0) {
                         $newRevenue = $link->conversions * $link->estimated_value;
                     }
                     break;
 
                 case 'sponsored':
                     // Revenue = clicks × sponsored_rate
-                    if ($link->sponsored_rate) {
+                    if ($link->sponsored_rate > 0) {
                         $newRevenue = $link->clicks * $link->sponsored_rate;
                     }
                     break;
 
                 case 'regular':
                 default:
-                    // No revenue for regular links
                     $newRevenue = 0;
                     break;
             }
 
-            // Update the total revenue if it's different
-            if ($link->total_revenue != $newRevenue) {
-                $link->update(['total_revenue' => $newRevenue]);
-                Log::info("Updated revenue for link {$link->id}: {$link->title} - New revenue: ${$newRevenue}");
-            }
+            // Update the total revenue
+            $link->update(['total_revenue' => $newRevenue]);
 
         } catch (\Exception $e) {
             Log::error('Failed to calculate automatic revenue for link ' . $link->id . ': ' . $e->getMessage());
         }
     }
 
-    /**
-     * API endpoint to get link performance data (ENHANCED with revenue data)
-     */
-    public function linkPerformance(User $user, Link $link, Request $request)
-    {
-        // Verify ownership
-        if ($link->user_id !== $user->id) {
-            abort(403, 'Unauthorized');
-        }
 
-        $startDate = $request->get('start_date', now()->subDays(30));
-        $endDate = $request->get('end_date', now());
 
-        // **NEW: Recalculate revenue to ensure it's up to date**
-        $this->updateAutomaticRevenue($link);
-        $link->refresh();
-
-        // Get detailed analytics for this specific link
-        $analytics = [
-            'total_clicks' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->count(),
-            
-            'unique_clicks' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->distinct('ip_address')
-                ->count(),
-            
-            'clicks_by_country' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->select('country_name', \DB::raw('COUNT(*) as clicks'))
-                ->whereNotNull('country_name')
-                ->groupBy('country_name')
-                ->orderBy('clicks', 'desc')
-                ->limit(10)
-                ->get(),
-            
-            'clicks_by_device' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->select('device_type', \DB::raw('COUNT(*) as clicks'))
-                ->whereNotNull('device_type')
-                ->groupBy('device_type')
-                ->get(),
-            
-            'clicks_by_source' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->select('traffic_source', \DB::raw('COUNT(*) as clicks'))
-                ->whereNotNull('traffic_source')
-                ->groupBy('traffic_source')
-                ->get(),
-            
-            'daily_clicks' => LinkClick::where('link_id', $link->id)
-                ->realVisitors()
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->select(\DB::raw('DATE(created_at) as date'), \DB::raw('COUNT(*) as clicks'))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->get(),
-
-            // **NEW: Revenue analytics**
-            'revenue_data' => [
-                'total_revenue' => $link->total_revenue,
-                'total_conversions' => $link->conversions,
-                'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
-                'revenue_per_click' => $link->clicks > 0 ? round($link->total_revenue / $link->clicks, 4) : 0,
-                'revenue_per_conversion' => $link->conversions > 0 ? round($link->total_revenue / $link->conversions, 2) : 0,
-                'link_type' => $link->link_type,
-                'commission_rate' => $link->commission_rate,
-                'estimated_value' => $link->estimated_value,
-                'sponsored_rate' => $link->sponsored_rate,
-            ],
-        ];
-
-        return response()->json($analytics);
-    }
-
-    /**
-     * **NEW: Manually track a conversion (this will trigger revenue recalculation)**
-     */
-    public function trackConversion(Request $request, User $user, Link $link)
-    {
-        // Ensure the user owns the link
-        if ($link->user_id !== $user->id) {
-            abort(403);
-        }
-
-        $request->validate([
-            'conversions' => 'required|integer|min:0',
-        ]);
-
-        // Update conversions count
-        $link->update(['conversions' => $request->conversions]);
-
-        // Recalculate revenue based on new conversion count
-        $this->updateAutomaticRevenue($link);
-
-        // Refresh the link data
-        $link->refresh();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Conversion tracked successfully',
-            'total_conversions' => $link->conversions,
-            'total_revenue' => $link->total_revenue,
-            'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
-        ]);
-    }
-
-    /**
-     * **NEW: Get comprehensive revenue analytics for all user links**
-     */
-    public function revenueAnalytics(User $user, Request $request)
-    {
-        $startDate = $request->get('start_date', now()->subDays(30));
-        $endDate = $request->get('end_date', now());
-
-        // Recalculate revenue for all user links
-        $links = $user->links;
-        foreach ($links as $link) {
-            $this->updateAutomaticRevenue($link);
-        }
-
-        // Get revenue breakdown by link type
-        $revenueByType = $user->links()
-            ->select('link_type', \DB::raw('SUM(total_revenue) as total_revenue'), \DB::raw('SUM(conversions) as total_conversions'), \DB::raw('SUM(clicks) as total_clicks'))
-            ->groupBy('link_type')
-            ->get();
-
-        // Get top performing links by revenue
-        $topRevenueLinks = $user->links()
-            ->where('total_revenue', '>', 0)
-            ->orderBy('total_revenue', 'desc')
-            ->limit(10)
-            ->get(['id', 'title', 'total_revenue', 'conversions', 'clicks', 'link_type']);
-
-        // Calculate totals
-        $totalRevenue = $user->links()->sum('total_revenue');
-        $totalConversions = $user->links()->sum('conversions');
-        $totalClicks = $user->links()->sum('clicks');
-
-        return response()->json([
-            'total_revenue' => $totalRevenue,
-            'total_conversions' => $totalConversions,
-            'total_clicks' => $totalClicks,
-            'overall_conversion_rate' => $totalClicks > 0 ? round(($totalConversions / $totalClicks) * 100, 2) : 0,
-            'revenue_per_click' => $totalClicks > 0 ? round($totalRevenue / $totalClicks, 4) : 0,
-            'revenue_by_type' => $revenueByType,
-            'top_revenue_links' => $topRevenueLinks,
-        ]);
-    }
-
-    /**
-     * Get real-time visitor information for profile
-     */
-    public function realtimeVisitors(User $user)
-    {
-        // Get visitors in the last 5 minutes
-        $currentVisitors = \App\Models\ProfileView::where('user_id', $user->id)
-            ->realVisitors()
-            ->where('created_at', '>=', now()->subMinutes(5))
-            ->select('country_name', 'city', 'device_type', 'created_at')
-            ->latest()
-            ->limit(10)
-            ->get();
-
-        // Get recent link clicks
-        $recentClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->realVisitors()
-            ->with('link:id,title')
-            ->where('created_at', '>=', now()->subMinutes(30))
-            ->select('link_id', 'country_name', 'city', 'device_type', 'created_at')
-            ->latest()
-            ->limit(5)
-            ->get();
-
-        return response()->json([
-            'current_visitors' => $currentVisitors,
-            'recent_clicks' => $recentClicks,
-            'visitors_count' => $currentVisitors->count(),
-        ]);
-    }
-
-    /**
-     * Get geographic data for mapping
-     */
-    public function geographicData(User $user, Request $request)
-    {
-        $startDate = $request->get('start_date', now()->subDays(7));
-        $endDate = $request->get('end_date', now());
-
-        // Get all profile views with coordinates
-        $profileViews = \App\Models\ProfileView::where('user_id', $user->id)
-            ->realVisitors()
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->select('latitude', 'longitude', 'city', 'country_name', \DB::raw('COUNT(*) as views'))
-            ->groupBy('latitude', 'longitude', 'city', 'country_name')
-            ->get();
-
-        // Get link clicks with coordinates
-        $linkClicks = LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-            ->realVisitors()
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->select('latitude', 'longitude', 'city', 'country_name', \DB::raw('COUNT(*) as clicks'))
-            ->groupBy('latitude', 'longitude', 'city', 'country_name')
-            ->get();
-
-        return response()->json([
-            'profile_views' => $profileViews,
-            'link_clicks' => $linkClicks,
-        ]);
-    }
-
-    /**
-     * Export analytics data (ENHANCED with revenue data)
-     */
-    public function exportAnalytics(User $user, Request $request)
-    {
-        $format = $request->get('format', 'csv');
-        $startDate = $request->get('start_date', now()->subDays(30));
-        $endDate = $request->get('end_date', now());
-
-        // Recalculate revenue for all links before export
-        foreach ($user->links as $link) {
-            $this->updateAutomaticRevenue($link);
-        }
-
-        // Get comprehensive analytics data
-        $data = [
-            'profile_views' => \App\Models\ProfileView::where('user_id', $user->id)
-                ->realVisitors()
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get(),
-            
-            'link_clicks' => LinkClick::whereIn('link_id', $user->links()->pluck('id'))
-                ->realVisitors()
-                ->with('link:id,title,url')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get(),
-
-            // **NEW: Revenue data**
-            'revenue_summary' => [
-                'total_revenue' => $user->links()->sum('total_revenue'),
-                'total_conversions' => $user->links()->sum('conversions'),
-                'revenue_by_link' => $user->links()
-                    ->where('total_revenue', '>', 0)
-                    ->get(['title', 'url', 'link_type', 'total_revenue', 'conversions', 'clicks'])
-                    ->toArray(),
-            ],
-        ];
-
-        // Return appropriate format
-        if ($format === 'json') {
-            return response()->json($data);
-        }
-        
-        // For CSV export, you'd use a package like League/CSV
-        return response()->json([
-            'message' => 'Export functionality to be implemented',
-            'data_count' => [
-                'profile_views' => $data['profile_views']->count(),
-                'link_clicks' => $data['link_clicks']->count(),
-                'total_revenue' => $data['revenue_summary']['total_revenue'],
-            ]
-        ]);
-    }
-
-    /**
-     * **NEW: Get link statistics with automatic revenue calculation**
-     */
-    public function getLinkStats(Link $link)
-    {
-        // Ensure the user owns the link
-        if ($link->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // Recalculate revenue to ensure it's up to date
-        $this->updateAutomaticRevenue($link);
-        $link->refresh();
-
-        $stats = [
-            'total_clicks' => $link->clicks,
-            'total_conversions' => $link->conversions,
-            'total_revenue' => $link->total_revenue,
-            'conversion_rate' => $link->clicks > 0 ? round(($link->conversions / $link->clicks) * 100, 2) : 0,
-            'revenue_per_click' => $link->clicks > 0 ? round($link->total_revenue / $link->clicks, 4) : 0,
-            'revenue_per_conversion' => $link->conversions > 0 ? round($link->total_revenue / $link->conversions, 2) : 0,
-            'link_type' => $link->link_type,
-            'recent_clicks' => $link->clicks()->where('created_at', '>=', now()->subDays(30))->count(),
-        ];
-
-        return response()->json($stats);
-    }
 }
