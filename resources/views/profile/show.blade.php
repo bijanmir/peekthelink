@@ -434,10 +434,10 @@
         <!-- Footer -->
         <div class="text-center mt-16 slide-up" style="animation-delay: {{ 0.8 + ($user->links->where('is_active', true)->count() * 0.1) }}s;">
             <div class="inline-flex items-center px-6 py-3 glass-card rounded-full text-sm text-gray-600 font-medium">
-                <svg class="w-5 h-5 mr-2 theme-accent" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-                Powered by <span class="font-bold theme-accent ml-1">PeekTheLink</span>
+                <div class="w-10 h-10">
+                    <img src="images/peek-logo.png" alt="">
+                </div>
+                Powered by <span class="font-bold theme-accent ml-1"><a href="https://peekthelink.com">PeekTheLink</a> </span>
             </div>
         </div>
     </div>
