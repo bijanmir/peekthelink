@@ -219,27 +219,29 @@ for ($i = 29; $i >= 0; $i--) {
     ->limit(5)
     ->get();
 
-        return view('dashboard', compact(
-            'user',
-            'totalLinksCount',
-            'activeLinksCount',
-            'totalClicks',
-            'profileViews',
-            'profileViewsPercentageChange',
-            'clicksPercentageChange',
-            'todayClicks',
-            'monthlyRevenue',
-            'revenuePercentageChange',
-            'conversionRate',
-            'revenuePerClick',
-            'revenueByType',
-            'topRevenueLinks',
-            'chartData',
-            'chartLabels',
-            'chartData30d',
-            'chartLabels30d',
-            'topLinks'
-        ));
+    $links = $topLinks;
+
+ return view('dashboard', compact(
+    'user',
+    'totalLinksCount',
+    'activeLinksCount',
+    'totalClicks',
+    'profileViews',
+    'profileViewsPercentageChange',
+    'clicksPercentageChange',
+    'todayClicks',
+    'monthlyRevenue',
+    'revenuePercentageChange',
+    'conversionRate',
+    'revenuePerClick',
+    'revenueByType',
+    'topRevenueLinks',
+    'chartData',
+    'chartLabels',
+    'chartData30d',
+    'chartLabels30d',
+    'topLinks'
+))->with('links', $topLinks);
     }
     
     /**
