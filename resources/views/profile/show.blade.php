@@ -350,45 +350,7 @@
             will-change: transform;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            .profile-gradient {
-                background:
-                    radial-gradient(circle at 20% 80%,
-                        {{ $user->theme_color }}
-                        15 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%,
-                        {{ $user->theme_color }}
-                        10 0%, transparent 50%),
-                    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            }
 
-            .glass-card {
-                background: rgba(15, 23, 42, 0.85);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .link-card {
-                background: rgba(15, 23, 42, 0.9);
-                color: #f1f5f9;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            }
-
-            .link-card:hover {
-                background: rgba(15, 23, 42, 0.95);
-                box-shadow:
-                    0 24px 48px rgba(0, 0, 0, 0.4),
-                    0 0 0 1px
-                    {{ $user->theme_color }}
-                    40;
-            }
-
-            .bio-text {
-                background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-        }
     </style>
 
     <div class="profile-gradient">
@@ -427,7 +389,7 @@
                 </div>
 
                 <!-- Name with Gradient -->
-                <h1 class="text-5xl font-black text-gray-900 mb-4 tracking-tight slide-up dark:text-gray-50"
+                <h1 class="text-5xl font-black text-gray-900 mb-4 tracking-tight slide-up "
                     style="animation-delay: 0.2s;">
                     {{ $user->display_name ?? $user->name }}
                 </h1>
@@ -650,8 +612,8 @@
                                     d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-50">No Links Yet</h3>
-                        <p class="text-gray-600 dark:text-gray-200 max-w-sm mx-auto">This profile doesn't have any active links
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">No Links Yet</h3>
+                        <p class="text-gray-600  max-w-sm mx-auto">This profile doesn't have any active links
                             to display right now.</p>
                     </div>
                 @endforelse
