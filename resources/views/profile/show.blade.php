@@ -1,576 +1,804 @@
 @extends('layouts.guest')
 
 @section('content')
-<style>
-    * { 
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-    }
-    
-    /* Premium gradient system */
-    .profile-gradient {
-        background: 
-            radial-gradient(circle at 20% 80%, {{ $user->theme_color }}08 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, {{ $user->theme_color }}05 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
-            linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
-        min-height: 100vh;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    /* Glass morphism cards */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.08),
-            0 1px 0 rgba(255, 255, 255, 0.8) inset;
-    }
-    
-    /* Premium link cards */
-    .link-card {
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border: 2px solid transparent;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(16px);
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    }
-    
-    .link-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        transition: left 0.5s;
-    }
-    
-    .link-card:hover::before {
-        left: 100%;
-    }
-    
-    .link-card:hover {
-        transform: translateY(-12px) scale(1.03);
-        box-shadow: 
-            0 24px 48px rgba(0, 0, 0, 0.12),
-            0 0 0 1px {{ $user->theme_color }}40;
-        background: rgba(255, 255, 255, 1);
-        border-color: {{ $user->theme_color }};
-    }
-    
-    .link-card:active {
-        transform: translateY(-8px) scale(1.01);
-    }
-    
-    /* Avatar animations */
-    .profile-avatar {
-        animation: float 6s ease-in-out infinite, glow-pulse 4s ease-in-out infinite alternate;
-        position: relative;
-    }
-    
-    .profile-avatar::after {
-        content: '';
-        position: absolute;
-        inset: -4px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, {{ $user->theme_color }}, rgba(139, 92, 246, 0.6));
-        z-index: -1;
-        animation: rotate 8s linear infinite;
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        33% { transform: translateY(-12px) rotate(1deg); }
-        66% { transform: translateY(6px) rotate(-1deg); }
-    }
-    
-    @keyframes glow-pulse {
-        0% { filter: drop-shadow(0 0 20px {{ $user->theme_color }}60); }
-        100% { filter: drop-shadow(0 0 40px {{ $user->theme_color }}80); }
-    }
-    
-    @keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    
-    /* Slide up animations */
-    @keyframes slideUp {
-        from { 
-            transform: translateY(50px); 
-            opacity: 0; 
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        to { 
-            transform: translateY(0); 
-            opacity: 1; 
-        }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .slide-up {
-        animation: slideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    }
-    
-    .fade-in {
-        animation: fadeIn 1.2s ease-out forwards;
-    }
-    
-    /* Staggered animations */
-    .slide-up:nth-child(1) { animation-delay: 0.1s; }
-    .slide-up:nth-child(2) { animation-delay: 0.2s; }
-    .slide-up:nth-child(3) { animation-delay: 0.3s; }
-    .slide-up:nth-child(4) { animation-delay: 0.4s; }
-    .slide-up:nth-child(5) { animation-delay: 0.5s; }
-    .slide-up:nth-child(6) { animation-delay: 0.6s; }
-    
-    /* Link icons */
-    .link-icon {
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    
-    .link-card:hover .link-icon {
-        transform: scale(1.2) rotate(8deg);
-        filter: brightness(1.2);
-    }
-    
-    /* Theme color utilities */
-    .theme-accent { color: {{ $user->theme_color }}; }
-    .theme-bg { background-color: {{ $user->theme_color }}; }
-    .theme-border { border-color: {{ $user->theme_color }}; }
-    .theme-gradient {
-        background: linear-gradient(135deg, {{ $user->theme_color }} 0%, rgba(139, 92, 246, 0.8) 100%);
-    }
-    
-    /* Floating background elements */
-    .floating-elements {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: 0;
-    }
-    
-    .floating-orb {
-        position: absolute;
-        border-radius: 50%;
-        background: linear-gradient(135deg, {{ $user->theme_color }}08, rgba(139, 92, 246, 0.04));
-        animation: floatOrb 20s infinite linear;
-        filter: blur(2px);
-    }
-    
-    @keyframes floatOrb {
-        0% { 
-            transform: translateY(100vh) translateX(0) rotate(0deg) scale(0.5);
-            opacity: 0;
-        }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { 
-            transform: translateY(-200px) translateX(100px) rotate(360deg) scale(1);
-            opacity: 0;
-        }
-    }
-    
-    /* Stats badges */
-    .stats-badge {
-        background: linear-gradient(135deg, {{ $user->theme_color }}10 0%, rgba(139, 92, 246, 0.06) 100%);
-        border: 1px solid {{ $user->theme_color }}20;
-        backdrop-filter: blur(8px);
-    }
-    
-    /* Bio text with gradient */
-    .bio-text {
-        background: linear-gradient(135deg, #374151 0%, #6b7280 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    /* Username badge */
-    .username-badge {
-        background: linear-gradient(135deg, {{ $user->theme_color }} 0%, rgba(139, 92, 246, 0.9) 100%);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .username-badge::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        animation: shimmer 3s infinite;
-    }
-    
-    @keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-    
-    /* Click ripple effect */
-    .ripple {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .ripple::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 5px;
-        height: 5px;
-        background: rgba(255, 255, 255, 0.5);
-        opacity: 0;
-        border-radius: 100%;
-        transform: scale(1, 1) translate(-50%);
-        transform-origin: 50% 50%;
-    }
-    
-    /* Responsive improvements */
-    @media (max-width: 640px) {
-        .link-card:hover {
-            transform: translateY(-6px) scale(1.02);
-        }
-        
-        .profile-avatar {
-            animation: float 8s ease-in-out infinite;
-        }
-    }
-    
-    /* Performance optimization */
-    .link-card, .glass-card, .profile-avatar {
-        will-change: transform;
-    }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
+
+        /* Premium gradient system */
         .profile-gradient {
-            background: 
-                radial-gradient(circle at 20% 80%, {{ $user->theme_color }}15 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, {{ $user->theme_color }}10 0%, transparent 50%),
-                linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background:
+                radial-gradient(circle at 20% 80%,
+                    {{ $user->theme_color }}
+                    08 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%,
+                    {{ $user->theme_color }}
+                    05 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        /* Glass morphism cards */
         .glass-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 1px 0 rgba(255, 255, 255, 0.8) inset;
         }
-        
+
+        /* Premium link cards */
         .link-card {
-            background: rgba(15, 23, 42, 0.9);
-            color: #f1f5f9;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(16px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
-        
-        .link-card:hover {
-            background: rgba(15, 23, 42, 0.95);
-            box-shadow: 
-                0 24px 48px rgba(0, 0, 0, 0.4),
-                0 0 0 1px {{ $user->theme_color }}40;
-        }
-        
-        .bio-text {
-            background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-    }
-</style>
 
-<div class="profile-gradient">
-    <!-- Floating Background Orbs -->
-    <div class="floating-elements">
-        <div class="floating-orb w-32 h-32" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="floating-orb w-24 h-24" style="left: 80%; animation-delay: 3s;"></div>
-        <div class="floating-orb w-20 h-20" style="left: 60%; animation-delay: 6s;"></div>
-        <div class="floating-orb w-28 h-28" style="left: 30%; animation-delay: 9s;"></div>
-        <div class="floating-orb w-16 h-16" style="left: 70%; animation-delay: 12s;"></div>
-    </div>
-
-    <div class="max-w-md mx-auto px-6 py-16 relative z-10">
-        
-        <!-- Profile Header -->
-        <div class="text-center mb-16">
-            <!-- Avatar with Premium Effects -->
-            <div class="relative inline-block mb-8 slide-up">
-                @if($user->profile_image)
-                    <img src="{{ asset('storage/' . $user->profile_image) }}" 
-                         alt="{{ $user->display_name ?? $user->name }}"
-                         class="profile-avatar w-36 h-36 rounded-full mx-auto object-cover shadow-2xl"
-                         style="border: 6px solid white;">
-                @else
-                    <div class="profile-avatar w-36 h-36 rounded-full mx-auto flex items-center justify-center text-white text-5xl font-black shadow-2xl theme-gradient">
-                        {{ strtoupper(substr($user->display_name ?? $user->name, 0, 1)) }}
-                    </div>
-                @endif
-                
-                <!-- Online Status with Pulse -->
-                <div class="absolute -bottom-1 -right-1 w-10 h-10 theme-bg rounded-full border-4 border-white shadow-xl flex items-center justify-center">
-                    <div class="w-4 h-4 bg-white rounded-full animate-ping"></div>
-                    <div class="w-4 h-4 bg-white rounded-full absolute animate-pulse"></div>
-                </div>
-            </div>
-            
-            <!-- Name with Gradient -->
-            <h1 class="text-5xl font-black text-gray-900 mb-4 tracking-tight slide-up dark:text-gray-50" style="animation-delay: 0.2s;">
-                {{ $user->display_name ?? $user->name }}
-            </h1>
-            
-            <!-- Username Badge -->
-            <div class="inline-flex items-center px-6 py-2 username-badge rounded-full text-white font-bold text-lg mb-6 slide-up" style="animation-delay: 0.3s;">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                {{ $user->username }}
-            </div>
-            
-            <!-- Bio -->
-            @if($user->bio)
-                <p class="bio-text text-xl leading-relaxed max-w-sm mx-auto mb-8 slide-up" style="animation-delay: 0.4s;">
-                    {{ $user->bio }}
-                </p>
-            @endif
-            
-            <!-- Stats Row -->
-            <div class="flex justify-center space-x-6 mb-12 slide-up" style="animation-delay: 0.5s;">
-                <div class="stats-badge px-4 py-2 rounded-xl">
-                    <div class="text-2xl font-black theme-accent">{{ $user->links->where('is_active', true)->count() }}</div>
-                    <div class="text-sm text-gray-600 font-medium">Links</div>
-                </div>
-                <div class="stats-badge px-4 py-2 rounded-xl">
-                    <div class="text-2xl font-black theme-accent">{{ $user->links->sum('clicks') }}</div>
-                    <div class="text-sm text-gray-600 font-medium">Clicks</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Links Grid -->
-        <div class="space-y-4">
-            @forelse($user->links->where('is_active', true)->sortBy('order') as $index => $link)
-<a href="{{ route('profile.link', [$user, $link]) }}"
-                   class="link-card glass-card rounded-2xl p-6 block group ripple slide-up"
-                   style="animation-delay: {{ 0.6 + ($index * 0.1) }}s;"
-                   onclick="return handleLinkClick(this, event);">
-                   
-                    <div class="flex items-center space-x-4">
-                        <!-- Dynamic Icon -->
-                        <div class="link-icon w-12 h-12 rounded-xl flex items-center justify-center text-white theme-gradient flex-shrink-0">
-                            @if(str_contains($link->url, 'instagram'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                </svg>
-                            @elseif(str_contains($link->url, 'twitter') || str_contains($link->url, 'x.com'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                                </svg>
-                            @elseif(str_contains($link->url, 'youtube'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                </svg>
-                            @elseif(str_contains($link->url, 'linkedin'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                                </svg>
-                            @elseif(str_contains($link->url, 'github'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                                </svg>
-                            @elseif(str_contains($link->url, 'tiktok'))
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                                </svg>
-                            @else
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                                </svg>
-                            @endif
-                        </div>
-                        
-                        <!-- Link Content -->
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-xl font-bold text-gray-900 mb-1 group-hover:theme-accent transition-colors duration-300">
-                                {{ $link->title }}
-                            </h3>
-                            @if($link->description)
-                                <p class="text-gray-600 text-sm leading-relaxed">{{ $link->description }}</p>
-                            @endif
-                        </div>
-                        
-                        <!-- Click indicator with count -->
-                        <div class="flex flex-col items-center space-y-1">
-                            <div class="text-xs text-gray-500 font-medium">{{ $link->clicks }} clicks</div>
-                            <svg class="w-5 h-5 text-gray-400 group-hover:theme-accent transform group-hover:translate-x-1 transition-all duration-300" 
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                </a>
-            @empty
-                <div class="text-center py-16 slide-up" style="animation-delay: 0.6s;">
-                    <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-50">No Links Yet</h3>
-                    <p class="text-gray-600 dark:text-gray-200 max-w-sm mx-auto">This profile doesn't have any active links to display right now.</p>
-                </div>
-            @endforelse
-        </div>
-
-        <!-- Footer -->
-        <div class="text-center mt-16 slide-up" style="animation-delay: {{ 0.8 + ($user->links->where('is_active', true)->count() * 0.1) }}s;">
-            <div class="inline-flex items-center px-6 py-3 glass-card rounded-full text-sm text-gray-600 font-medium">
-                <div class="w-10 h-10">
-                    <img src="images/peek-logo.png" alt="">
-                </div>
-                Powered by <span class="font-bold theme-accent ml-1"><a href="https://peekthelink.com">PeekTheLink</a> </span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Enhanced click handling with analytics
-    function handleLinkClick(linkCard, event) {
-        // Visual feedback
-        linkCard.style.transform = 'scale(0.95)';
-        
-        // Create ripple effect
-        const ripple = document.createElement('span');
-        const rect = linkCard.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = event.clientX - rect.left - size / 2;
-        const y = event.clientY - rect.top - size / 2;
-        
-        ripple.style.cssText = `
+        .link-card::before {
+            content: '';
             position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            left: ${x}px;
-            top: ${y}px;
-            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple-animation 0.6s ease-out;
-            pointer-events: none;
-            z-index: 1000;
-        `;
-        
-        linkCard.appendChild(ripple);
-        
-        // Clean up ripple
-        setTimeout(() => {
-            if (ripple.parentNode) {
-                ripple.parentNode.removeChild(ripple);
-            }
-        }, 600);
-        
-        // Reset transform
-        setTimeout(() => {
-            linkCard.style.transform = '';
-        }, 150);
-        
-        return true; // Allow navigation
-    }
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
 
-    // Add ripple animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple-animation {
+        .link-card:hover::before {
+            left: 100%;
+        }
+
+        .link-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow:
+                0 24px 48px rgba(0, 0, 0, 0.12),
+                0 0 0 1px
+                {{ $user->theme_color }}
+                40;
+            background: rgba(255, 255, 255, 1);
+            border-color:
+                {{ $user->theme_color }}
+            ;
+        }
+
+        .link-card:active {
+            transform: translateY(-8px) scale(1.01);
+        }
+
+        /* Avatar animations */
+        .profile-avatar {
+            animation: float 6s ease-in-out infinite, glow-pulse 4s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        .profile-avatar::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                    {{ $user->theme_color }}
+                    , rgba(139, 92, 246, 0.6));
+            z-index: -1;
+            animation: rotate 8s linear infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            33% {
+                transform: translateY(-12px) rotate(1deg);
+            }
+
+            66% {
+                transform: translateY(6px) rotate(-1deg);
+            }
+        }
+
+        @keyframes glow-pulse {
+            0% {
+                filter: drop-shadow(0 0 20px
+                        {{ $user->theme_color }}
+                        60);
+            }
+
+            100% {
+                filter: drop-shadow(0 0 40px
+                        {{ $user->theme_color }}
+                        80);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
             to {
-                transform: scale(2);
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Slide up animations */
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .fade-in {
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+
+        /* Staggered animations */
+        .slide-up:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .slide-up:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .slide-up:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .slide-up:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .slide-up:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .slide-up:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        /* Link icons */
+        .link-icon {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .link-card:hover .link-icon {
+            transform: scale(1.2) rotate(8deg);
+            filter: brightness(1.2);
+        }
+
+        /* Theme color utilities */
+        .theme-accent {
+            color:
+                {{ $user->theme_color }}
+            ;
+        }
+
+        .theme-bg {
+            background-color:
+                {{ $user->theme_color }}
+            ;
+        }
+
+        .theme-border {
+            border-color:
+                {{ $user->theme_color }}
+            ;
+        }
+
+        .theme-gradient {
+            background: linear-gradient(135deg,
+                    {{ $user->theme_color }}
+                    0%, rgba(139, 92, 246, 0.8) 100%);
+        }
+
+        /* Floating background elements */
+        .floating-elements {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                    {{ $user->theme_color }}
+                    08, rgba(139, 92, 246, 0.04));
+            animation: floatOrb 20s infinite linear;
+            filter: blur(2px);
+        }
+
+        @keyframes floatOrb {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-200px) translateX(100px) rotate(360deg) scale(1);
                 opacity: 0;
             }
         }
-    `;
-    document.head.appendChild(style);
 
-    // Intersection Observer for scroll animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
+        /* Stats badges */
+        .stats-badge {
+            background: linear-gradient(135deg,
+                    {{ $user->theme_color }}
+                    10 0%, rgba(139, 92, 246, 0.06) 100%);
+            border: 1px solid
+                {{ $user->theme_color }}
+                20;
+            backdrop-filter: blur(8px);
+        }
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+        /* Bio text with gradient */
+        .bio-text {
+            background: linear-gradient(135deg, #374151 0%, #6b7280 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Username badge */
+        .username-badge {
+            background: linear-gradient(135deg,
+                    {{ $user->theme_color }}
+                    0%, rgba(139, 92, 246, 0.9) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .username-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
             }
-        });
-    }, observerOptions);
 
-    // Initialize animations on load
-    document.addEventListener('DOMContentLoaded', () => {
-        // Observe slide-up elements
-        const animatedElements = document.querySelectorAll('.slide-up');
-        animatedElements.forEach((el, index) => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            observer.observe(el);
-        });
+            100% {
+                left: 100%;
+            }
+        }
 
-        // Preload images for better performance
-        const images = document.querySelectorAll('img');
-        images.forEach(img => {
-            const newImg = new Image();
-            newImg.src = img.src;
-        });
+        /* Click ripple effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
 
-        // Add touch feedback for mobile
-        if ('ontouchstart' in window) {
-            const linkCards = document.querySelectorAll('.link-card');
-            linkCards.forEach(card => {
-                card.addEventListener('touchstart', () => {
-                    card.style.transform = 'scale(0.98)';
-                });
-                
-                card.addEventListener('touchend', () => {
-                    setTimeout(() => {
-                        card.style.transform = '';
-                    }, 100);
-                });
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 640px) {
+            .link-card:hover {
+                transform: translateY(-6px) scale(1.02);
+            }
+
+            .profile-avatar {
+                animation: float 8s ease-in-out infinite;
+            }
+        }
+
+        /* Performance optimization */
+        .link-card,
+        .glass-card,
+        .profile-avatar {
+            will-change: transform;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .profile-gradient {
+                background:
+                    radial-gradient(circle at 20% 80%,
+                        {{ $user->theme_color }}
+                        15 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%,
+                        {{ $user->theme_color }}
+                        10 0%, transparent 50%),
+                    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            }
+
+            .glass-card {
+                background: rgba(15, 23, 42, 0.85);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .link-card {
+                background: rgba(15, 23, 42, 0.9);
+                color: #f1f5f9;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            }
+
+            .link-card:hover {
+                background: rgba(15, 23, 42, 0.95);
+                box-shadow:
+                    0 24px 48px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px
+                    {{ $user->theme_color }}
+                    40;
+            }
+
+            .bio-text {
+                background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+    </style>
+
+    <div class="profile-gradient">
+        <!-- Floating Background Orbs -->
+        <div class="floating-elements">
+            <div class="floating-orb w-32 h-32" style="left: 10%; animation-delay: 0s;"></div>
+            <div class="floating-orb w-24 h-24" style="left: 80%; animation-delay: 3s;"></div>
+            <div class="floating-orb w-20 h-20" style="left: 60%; animation-delay: 6s;"></div>
+            <div class="floating-orb w-28 h-28" style="left: 30%; animation-delay: 9s;"></div>
+            <div class="floating-orb w-16 h-16" style="left: 70%; animation-delay: 12s;"></div>
+        </div>
+
+        <div class="max-w-md mx-auto px-6 py-16 relative z-10">
+
+            <!-- Profile Header -->
+            <div class="text-center mb-16">
+                <!-- Avatar with Premium Effects -->
+                <div class="relative inline-block mb-8 slide-up">
+                    @if($user->profile_image)
+                        <img src="{{ asset('storage/' . $user->profile_image) }}" alt="{{ $user->display_name ?? $user->name }}"
+                            class="profile-avatar w-36 h-36 rounded-full mx-auto object-cover shadow-2xl"
+                            style="border: 6px solid white;">
+                    @else
+                        <div
+                            class="profile-avatar w-36 h-36 rounded-full mx-auto flex items-center justify-center text-white text-5xl font-black shadow-2xl theme-gradient">
+                            {{ strtoupper(substr($user->display_name ?? $user->name, 0, 1)) }}
+                        </div>
+                    @endif
+
+                    <!-- Online Status with Pulse -->
+                    <div
+                        class="absolute -bottom-1 -right-1 w-10 h-10 theme-bg rounded-full border-4 border-white shadow-xl flex items-center justify-center">
+                        <div class="w-4 h-4 bg-white rounded-full animate-ping"></div>
+                        <div class="w-4 h-4 bg-white rounded-full absolute animate-pulse"></div>
+                    </div>
+                </div>
+
+                <!-- Name with Gradient -->
+                <h1 class="text-5xl font-black text-gray-900 mb-4 tracking-tight slide-up dark:text-gray-50"
+                    style="animation-delay: 0.2s;">
+                    {{ $user->display_name ?? $user->name }}
+                </h1>
+
+                <!-- Username Badge -->
+                <div class="inline-flex items-center px-6 py-2 username-badge rounded-full text-white font-bold text-lg mb-6 slide-up"
+                    style="animation-delay: 0.3s;">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ $user->username }}
+                </div>
+
+                <!-- Bio -->
+                @if($user->bio)
+                    <p class="bio-text text-xl leading-relaxed max-w-sm mx-auto mb-8 slide-up" style="animation-delay: 0.4s;">
+                        {{ $user->bio }}
+                    </p>
+                @endif
+
+                <!-- Stats Row -->
+                <div class="flex justify-center space-x-6 mb-12 slide-up" style="animation-delay: 0.5s;">
+                    <div class="stats-badge px-4 py-2 rounded-xl">
+                        <div class="text-2xl font-black theme-accent">{{ $user->links->where('is_active', true)->count() }}
+                        </div>
+                        <div class="text-sm text-gray-600 font-medium">Links</div>
+                    </div>
+                    <div class="stats-badge px-4 py-2 rounded-xl">
+                        <div class="text-2xl font-black theme-accent">{{ $user->links->sum('clicks') }}</div>
+                        <div class="text-sm text-gray-600 font-medium">Clicks</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links Grid -->
+            <div class="space-y-4">
+                @forelse($user->links->where('is_active', true)->sortBy('order') as $index => $link)
+                    <a href="{{ route('profile.link', [$user, $link]) }}"
+                        class="link-card glass-card rounded-2xl p-6 block group ripple slide-up"
+                        style="animation-delay: {{ 0.6 + ($index * 0.1) }}s;" onclick="return handleLinkClick(this, event);">
+
+                        <div class="flex items-center space-x-4">
+                            <!-- Dynamic Icon -->
+                            <div
+                                class="link-icon w-12 h-12 rounded-xl flex items-center justify-center text-white theme-gradient flex-shrink-0">
+                                @if(str_contains($link->url, 'instagram'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'twitter') || str_contains($link->url, 'x.com'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'youtube'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'tiktok'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'linkedin'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'github'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'snapchat'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.347-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.748-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24c6.624 0 11.99-5.367 11.99-12.013C24.007 5.367 18.641.001.012.001z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'onlyfans'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M24 4.003h-4.015c-3.45 0-6.24 2.79-6.24 6.24v9.54H24v-15.78zm-8.25 0H0v4.015h15.75v-4.015zm0 15.78H7.5v-7.755c0-1.725 1.29-3.015 3.015-3.015H15.75v10.77z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'twitch'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'discord'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0189 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9554 2.4189-2.1568 2.4189Z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'spotify'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'facebook'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'pinterest'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.347-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.748-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24c6.624 0 11.99-5.367 11.99-12.013C24.007 5.367 18.641.001.012.001z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'reddit'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'telegram'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'whatsapp'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.488" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'patreon'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M0 .48v23.04h4.22V.48zm15.385 0c-4.764 0-8.641 3.88-8.641 8.65 0 4.755 3.877 8.623 8.641 8.623 4.75 0 8.615-3.868 8.615-8.623C24 4.36 20.136.48 15.385.48z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'ko-fi'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.033 11.596c.049 4.271 3.773 7.024 3.773 7.024s3.098 1.175 7.502.136c4.404-1.04 7.26-5.346 7.26-5.346l7.240-1.275S24.653 13.033 23.881 8.948zm-5.951 5.469s-1.563 2.891-4.114 3.681c-2.551.79-4.934.129-4.934.129s-2.335-1.619-2.335-4.657c0-3.038 1.619-4.657 1.619-4.657s2.335-1.147 4.657-.129c2.322 1.018 2.991 3.633 2.991 3.633a.887.887 0 0 1-.764 1.179c-.3.088-.664-.074-.85-.383-.186-.309-.383-.914-.383-.914s-.104-.879-.457-1.107c-.353-.228-.879.309-1.311.879-.432.57-.571 1.469-.571 1.469s-.104.879.228 1.386c.332.507.879.457.879.457s1.107-.104 1.564-.879c.457-.775.486-1.179.486-1.179a.887.887 0 0 1 1.236-.383c.301.186.457.523.457.879z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'threads'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.5 1.5 9.414 2.35 6.56 3.995 4.509 5.845 2.205 8.598 1.024 12.18 1h.014c2.746.018 5.129.797 6.992 2.2 1.861 1.399 3.031 3.527 3.617 6.675l-.067.024.038.153.048.201c.023.106.05.226.05.346.025.328-.083.634-.333.937C21.962 12.162 21.305 12.5 20.5 13l-.067-.024c.049 1.156-.195 2.168-.815 3.028l-.067-.024.038.153.048.201c.025.356-.022.687-.189.969-.367.623-1.052.936-2.037.936-.491 0-1.012-.094-1.54-.277-.528-.182-1.064-.456-1.588-.806l-.067-.024.038.153.048.201c.025.356-.022.687-.189.969-.367.623-1.052.936-2.037.936-.491 0-1.012-.094-1.54-.277-.528-.182-1.064-.456-1.588-.806l-.067-.024c-.001.021-.002.041-.002.062 0 1.156-.195 2.168-.815 3.028l-.067-.024.038.153.048.201c.025.356-.022.687-.189.969-.367.623-1.052.936-2.037.936-.491 0-1.012-.094-1.54-.277-.528-.182-1.064-.456-1.588-.806l-.067-.024a.485.485 0 0 1-.007-.062zm0 0" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'mastodon'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.268 5.313c-.35-2.578-2.617-4.61-5.304-5.004C17.51.242 15.792 0 11.813 0h-.03c-3.98 0-4.835.242-5.288.309C3.882.692 1.496 2.518.917 5.127.64 6.412.61 7.837.661 9.143c.074 1.874.088 3.745.26 5.611.118 1.24.325 2.47.62 3.68.55 2.237 2.777 4.098 4.96 4.857 2.336.792 4.849.923 7.256.38.265-.061.527-.132.786-.213.585-.184 1.27-.39 1.774-.753a.057.057 0 0 0 .023-.043v-1.809a.052.052 0 0 0-.02-.041.053.053 0 0 0-.046-.01 20.282 20.282 0 0 1-4.709.545c-2.73 0-3.463-1.284-3.674-1.818a5.593 5.593 0 0 1-.319-1.433.053.053 0 0 1 .066-.054c1.517.363 3.072.546 4.632.546.376 0 .75 0 1.125-.01 1.57-.044 3.224-.124 4.768-.422.038-.008.077-.015.11-.024 2.435-.464 4.753-1.92 4.989-5.604.008-.145.03-1.52.03-1.67.002-.512.167-3.63-.024-5.545zm-3.748 9.195h-2.561V8.29c0-1.309-.55-1.976-1.67-1.976-1.23 0-1.846.79-1.846 2.35v3.403h-2.546V8.663c0-1.56-.617-2.35-1.848-2.35-1.112 0-1.668.668-1.67 1.977v6.218H4.822V8.102c0-1.31.337-2.35 1.011-3.12.696-.77 1.608-1.164 2.74-1.164 1.311 0 2.302.5 2.962 1.498l.638 1.06.638-1.06c.66-.999 1.65-1.498 2.96-1.498 1.13 0 2.043.395 2.74 1.164.675.77 1.012 1.81 1.012 3.12z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'vimeo'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197a315.065 315.065 0 0 0 2.242-2.532C3.34 3.498 4.6 2.84 5.235 2.840c1.511-.144 2.438.887 2.78 3.091.368 2.379.624 3.858.768 4.435.432 1.946.905 2.919 1.42 2.919.4 0 1.013-.63 1.836-1.897.824-1.267.905-2.379.905-3.337 0-1.267-.368-1.897-1.105-1.897-.393 0-.8.09-1.22.267.81-2.532 2.340-3.764 4.595-3.764 1.647 0 2.436 1.086 2.436 3.258 0 .265-.024.554-.073.868-.105.96-.368 1.554-.786 1.779-.368.202-.679.225-.933.07-.254-.153-.38-.428-.38-.826 0-.399.129-.798.388-1.198.105-.199.105-.398 0-.598-.105-.199-.314-.298-.628-.298-.472 0-.785.224-1.009.673-.225.45-.337.975-.337 1.575 0 1.201.473 1.802 1.419 1.802.683 0 1.368-.324 2.055-.972.688-.648 1.032-1.497 1.032-2.548 0-1.898-.756-2.847-2.268-2.847-1.145 0-2.292.575-3.443 1.725-1.15 1.15-1.965 2.621-2.446 4.414 0-.225 0-.45 0-.675.105-.9.368-1.725.788-2.475.42-.75.968-1.363 1.645-1.838.678-.475 1.361-.712 2.051-.712 1.722 0 2.583 1.2 2.583 3.6z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'soundcloud'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M1.175 12.225c-.051 0-.094.046-.101.1l-.233 2.154.233 2.105c.007.058.05.098.101.098.053 0 .094-.04.101-.098l.262-2.105-.262-2.154c-.007-.054-.048-.1-.101-.1zm-.899 1.168c-.044 0-.078.033-.085.077l-.21 1.918.21 1.889c.007.04.041.076.085.076.042 0 .075-.036.082-.076l.239-1.889-.239-1.918c-.007-.044-.04-.077-.082-.077zm-.675.629c-.031 0-.057.025-.063.056l-.2 1.286.2 1.237c.006.034.032.055.063.055.029 0 .052-.021.058-.055l.221-1.237-.221-1.286c-.006-.031-.029-.056-.058-.056zm-.673.661c-.019 0-.036.016-.04.035l-.179.625.179.59c.004.02.021.036.04.036.017 0 .033-.016.037-.036l.199-.59-.199-.625c-.004-.019-.02-.035-.037-.035zm6.754-4.584c-.165 0-.316.132-.316.3l-.194 2.9.194 2.871c0 .168.151.299.316.299.166 0 .302-.131.302-.299l.219-2.871-.219-2.9c0-.168-.136-.3-.302-.3zm.684-.063c-.179 0-.324.144-.324.323l-.21 2.964.21 2.942c0 .178.145.322.324.322.177 0 .32-.144.32-.322l.236-2.942-.236-2.964c0-.179-.143-.323-.32-.323zm.67-.065c-.194 0-.351.155-.351.348l-.206 3.028.206 3.005c0 .195.157.349.351.349.195 0 .351-.154.351-.349l.229-3.005-.229-3.028c0-.193-.156-.348-.351-.348zm.684-.068c-.209 0-.378.166-.378.375l-.201 3.096.201 3.073c0 .21.169.377.378.377.208 0 .377-.167.377-.377l.225-3.073-.225-3.096c0-.209-.169-.375-.377-.375zm.684-.069c-.223 0-.405.18-.405.401l-.196 3.165.196 3.142c0 .223.182.402.405.402.224 0 .405-.179.405-.402l.221-3.142-.221-3.165c0-.221-.181-.401-.405-.401zm.681-.057c-.239 0-.433.191-.433.428l-.193 3.222.193 3.2c0 .238.194.428.433.428.238 0 .431-.19.431-.428l.217-3.2-.217-3.222c0-.237-.193-.428-.431-.428zm.684-.063c-.253 0-.459.204-.459.454l-.187 3.285.187 3.262c0 .252.206.455.459.455.252 0 .458-.203.458-.455l.212-3.262-.212-3.285c0-.25-.206-.454-.458-.454zm.684-.064c-.268 0-.486.216-.486.481l-.182 3.349.182 3.32c0 .267.218.482.486.482.267 0 .485-.215.485-.482l.208-3.32-.208-3.349c0-.265-.218-.481-.485-.481zm.69-.071c-.283 0-.512.226-.512.507l-.177 3.42.177 3.392c0 .283.229.508.512.508.282 0 .51-.225.51-.508l.203-3.392-.203-3.42c0-.281-.228-.507-.51-.507zm.677-.06c-.297 0-.537.237-.537.532l-.174 3.48.174 3.451c0 .297.24.533.537.533.296 0 .536-.236.536-.533l.199-3.451-.199-3.48c0-.295-.24-.532-.536-.532zm.684-.061c-.311 0-.564.25-.564.558l-.169 3.541.169 3.51c0 .31.253.559.564.559.31 0 .562-.249.562-.559l.195-3.51-.195-3.541c0-.308-.252-.558-.562-.558zm.677-.058c-.326 0-.591.261-.591.583l-.165 3.599.165 3.569c0 .324.265.584.591.584.325 0 .589-.26.589-.584l.191-3.569-.191-3.599c0-.322-.264-.583-.589-.583zm2.722-2.695c-.059 0-.116.011-.172.024-.09-1.06-.97-1.898-2.048-1.898-.425 0-.825.131-1.163.36-.096.064-.13.146-.13.235l-.006 8.703c.007.124.104.225.23.234h3.289c1.126 0 2.037-.897 2.037-2.007 0-1.109-.911-2.007-2.037-2.007z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'apple') && str_contains($link->url, 'music'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="m12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.040.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'cashapp') || str_contains($link->url, '$'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.59 3.475c-.229.325-.532.602-.898.777.335 2.329-2.032 3.626-3.917 3.626-.673 0-1.314-.178-1.807-.473C15.5 8.688 13.856 9.815 12 9.815c-1.856 0-3.5-1.127-4.968-2.41-.493.295-1.134.473-1.807.473-1.885 0-4.252-1.297-3.917-3.626-.366-.175-.669-.452-.898-.777C-.113 4.445.226 6.068 1.03 7.422c1.314 2.215 3.705 3.578 6.097 3.578.673 0 1.314-.178 1.807-.473C10.366 11.81 11.173 12 12 12s1.634-.19 3.066-1.473c.493.295 1.134.473 1.807.473 2.392 0 4.783-1.363 6.097-3.578.804-1.354 1.143-2.977.62-3.947z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'venmo'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M0 2.5v19A2.5 2.5 0 0 0 2.5 24h19a2.5 2.5 0 0 0 2.5-2.5v-19A2.5 2.5 0 0 0 21.5 0h-19A2.5 2.5 0 0 0 0 2.5ZM18.75 5.5c.69 0 1.25.56 1.25 1.25s-.56 1.25-1.25 1.25S17.5 7.44 17.5 6.75s.56-1.25 1.25-1.25ZM2.917 4.583c2.61 0 4.32 2.014 4.32 4.58 0 2.566-1.71 4.581-4.32 4.581V4.583ZM12 6.167c-2.344 0-4.167 1.823-4.167 4.167S9.656 14.5 12 14.5s4.167-1.823 4.167-4.166S14.344 6.167 12 6.167ZM5.25 16.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25S6.5 14.31 6.5 15s-.56 1.25-1.25 1.25Z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'amazon'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.525.13.12.174.09.336-.12.48-.256.19-.6.41-1.006.654-1.244.743-2.64 1.316-4.185 1.726-1.53.406-3.045.608-4.516.608-3.465 0-6.533-.95-9.2-2.85l-.005-.003c-.16-.123-.18-.263-.1-.415l.334-.604zm1.043-2.137c.045-.29.2-.434.465-.434.28 0 .73.11 1.358.333 1.087.386 2.315.58 3.682.58.468 0 .925-.031 1.378-.095.614-.088 1.207-.244 1.778-.464.376-.145.64-.22.79-.22.18 0 .27.117.27.35 0 .262-.074.48-.22.655-.145.174-.345.31-.595.404-.16.06-.42.154-.776.275-1.482.504-3.08.756-4.796.756-1.77 0-3.216-.233-4.338-.7-.295-.123-.487-.21-.577-.26-.135-.076-.203-.18-.203-.312 0-.05.01-.108.032-.173l.022-.124.008-.066zm16.753 1.348c-.174-.24-.296-.4-.367-.48-.2-.22-.33-.34-.39-.36-.09-.03-.175-.03-.26 0-.11.04-.19.12-.24.24-.06.15-.09.29-.09.42 0 .18.06.35.18.51.09.12.19.21.3.27.08.05.17.07.26.07.12 0 .24-.04.36-.12.2-.13.35-.31.45-.54.08-.18.08-.34 0-.48-.05-.09-.12-.18-.21-.27z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'etsy'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M9.16 11.5v1h4.84v-1H9.16zM6.81 5.78l6.33 5.22.79-.96L7.6 4.82l-.79.96zM6 2.5h12c.83 0 1.5.67 1.5 1.5v16c0 .83-.67 1.5-1.5 1.5H6c-.83 0-1.5-.67-1.5-1.5V4c0-.83.67-1.5 1.5-1.5zM6 0c-1.66 0-3 1.34-3 3v18c0 1.66 1.34 3 3 3h12c1.66 0 3-1.34 3-3V3c0-1.66-1.34-3-3-3H6z" />
+                                    </svg>
+                                @elseif(str_contains($link->url, 'shopify'))
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M15.337 2.368c-.332-.033-.66.033-.99.132-.33.099-.627.264-.858.495-.264.264-.462.594-.594.957-.099.297-.132.627-.132.957v.099c-.495.033-.99.132-1.485.264-.033-.099-.066-.198-.132-.297-.198-.462-.528-.858-.924-1.155-.429-.297-.924-.462-1.452-.462-.825 0-1.65.297-2.343.858-.693.561-1.155 1.353-1.32 2.178-.132.693-.066 1.386.198 2.046.132.297.297.561.495.792.132.165.297.297.462.429.231.198.495.363.792.495.396.165.825.264 1.254.297h.066c.099.033.198.066.297.099.429.165.825.396 1.155.693.33.297.594.66.792 1.056.198.396.33.825.396 1.254.066.429.066.858 0 1.287-.066.429-.198.858-.396 1.254-.198.396-.462.759-.792 1.056-.33.297-.726.528-1.155.693-.429.165-.891.264-1.353.297-.462.033-.924-.033-1.353-.198-.429-.165-.825-.396-1.155-.693-.33-.297-.594-.66-.792-1.056-.198-.396-.33-.825-.396-1.254-.066-.429-.066-.858 0-1.287.066-.429.198-.858.396-1.254.198-.396.462-.759.792-1.056.33-.297.726-.528 1.155-.693.099-.033.198-.066.297-.099h.066c.429-.033.858-.132 1.254-.297.297-.132.561-.297.792-.495.165-.132.33-.264.462-.429.198-.231.363-.495.495-.792.264-.66.33-1.353.198-2.046-.165-.825-.627-1.617-1.32-2.178s-1.518-.858-2.343-.858c-.528 0-1.023.165-1.452.462-.396.297-.726.693-.924 1.155-.066.099-.099.198-.132.297-.495-.132-.99-.231-1.485-.264v-.099c0-.33-.033-.66-.132-.957-.132-.363-.33-.693-.594-.957-.231-.231-.528-.396-.858-.495-.33-.099-.658-.165-.99-.132-.33.033-.66.132-.957.297s-.561.396-.759.66c-.198.264-.33.561-.396.891-.066.33-.066.66 0 .99.066.33.198.66.396.924.198.264.462.495.759.66.297.165.627.264.957.297h.099c.033.033.066.066.099.099.198.198.363.429.495.693.132.264.198.561.198.858 0 .297-.066.594-.198.858-.132.264-.297.495-.495.693-.198.198-.429.363-.693.495-.264.132-.561.198-.858.198-.297 0-.594-.066-.858-.198-.264-.132-.495-.297-.693-.495-.198-.198-.363-.429-.495-.693-.132-.264-.198-.561-.198-.858 0-.297.066-.594.198-.858.132-.264.297-.495.495-.693.033-.033.066-.066.099-.099h.099c.33-.033.66-.132.957-.297s.561-.396.759-.66c.198-.264.33-.594.396-.924s.066-.66 0-.99c-.066-.33-.198-.627-.396-.891-.198-.264-.462-.495-.759-.66-.297-.165-.627-.264-.957-.297z" />
+                                    </svg>
+                                @else
+                                    {{-- Default link icon --}}
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                    </svg>
+                                @endif
+                            </div>
+
+                            <!-- Link Content -->
+                            <div class="flex-1 min-w-0">
+                                <h3
+                                    class="text-xl font-bold text-gray-900 mb-1 group-hover:theme-accent transition-colors duration-300">
+                                    {{ $link->title }}
+                                </h3>
+                                @if($link->description)
+                                    <p class="text-gray-600 text-sm leading-relaxed">{{ $link->description }}</p>
+                                @endif
+                            </div>
+
+                            <!-- Click indicator with count -->
+                            <div class="flex flex-col items-center space-y-1">
+                                <div class="text-xs text-gray-500 font-medium">{{ $link->clicks }} clicks</div>
+                                <svg class="w-5 h-5 text-gray-400 group-hover:theme-accent transform group-hover:translate-x-1 transition-all duration-300"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="text-center py-16 slide-up" style="animation-delay: 0.6s;">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-50">No Links Yet</h3>
+                        <p class="text-gray-600 dark:text-gray-200 max-w-sm mx-auto">This profile doesn't have any active links
+                            to display right now.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-16 slide-up"
+                style="animation-delay: {{ 0.8 + ($user->links->where('is_active', true)->count() * 0.1) }}s;">
+                <div class="inline-flex items-center px-6 py-3 glass-card rounded-full text-sm text-gray-600 font-medium">
+                    <div class="w-10 h-10">
+                        <img src="images/peek-logo.png" alt="">
+                    </div>
+                    Powered by <span class="font-bold theme-accent ml-1"><a href="https://peekthelink.com">PeekTheLink</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced click handling with analytics
+        function handleLinkClick(linkCard, event) {
+            // Visual feedback
+            linkCard.style.transform = 'scale(0.95)';
+
+            // Create ripple effect
+            const ripple = document.createElement('span');
+            const rect = linkCard.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple-animation 0.6s ease-out;
+                pointer-events: none;
+                z-index: 1000;
+            `;
+
+            linkCard.appendChild(ripple);
+
+            // Clean up ripple
+            setTimeout(() => {
+                if (ripple.parentNode) {
+                    ripple.parentNode.removeChild(ripple);
+                }
+            }, 600);
+
+            // Reset transform
+            setTimeout(() => {
+                linkCard.style.transform = '';
+            }, 150);
+
+            return true; // Allow navigation
+        }
+
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-animation {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
             });
-        }
-    });
+        }, observerOptions);
 
-    // Performance optimization: debounce scroll events
-    let ticking = false;
-    function updateScrollAnimations() {
-        // Add any scroll-based animations here
-        ticking = false;
-    }
+        // Initialize animations on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Observe slide-up elements
+            const animatedElements = document.querySelectorAll('.slide-up');
+            animatedElements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                observer.observe(el);
+            });
 
-    window.addEventListener('scroll', () => {
-        if (!ticking) {
-            requestAnimationFrame(updateScrollAnimations);
-            ticking = true;
-        }
-    });
+            // Preload images for better performance
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                const newImg = new Image();
+                newImg.src = img.src;
+            });
 
-    // Add keyboard navigation support
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            const focusedElement = document.activeElement;
-            if (focusedElement.classList.contains('link-card')) {
-                e.preventDefault();
-                focusedElement.click();
+            // Add touch feedback for mobile
+            if ('ontouchstart' in window) {
+                const linkCards = document.querySelectorAll('.link-card');
+                linkCards.forEach(card => {
+                    card.addEventListener('touchstart', () => {
+                        card.style.transform = 'scale(0.98)';
+                    });
+
+                    card.addEventListener('touchend', () => {
+                        setTimeout(() => {
+                            card.style.transform = '';
+                        }, 100);
+                    });
+                });
             }
+        });
+
+        // Performance optimization: debounce scroll events
+        let ticking = false;
+        function updateScrollAnimations() {
+            // Add any scroll-based animations here
+            ticking = false;
         }
-    });
-</script>
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateScrollAnimations);
+                ticking = true;
+            }
+        });
+
+        // Add keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const focusedElement = document.activeElement;
+                if (focusedElement.classList.contains('link-card')) {
+                    e.preventDefault();
+                    focusedElement.click();
+                }
+            }
+        });
+    </script>
 @endsection
