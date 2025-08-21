@@ -1,17 +1,28 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PeekTheLink - Your All-in-One Link-in-Bio Solution</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-L101Y2JDKW"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-L101Y2JDKW');
+    </script>
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <style>
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -21,138 +32,191 @@
             background-size: 200% 200%;
             animation: gradient-shift 3s ease-in-out infinite;
         }
-        
+
         @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
-        
+
         .floating {
             animation: floating 6s ease-in-out infinite;
         }
-        
+
         @keyframes floating {
-            0% { transform: translate(0, 0px); }
-            50% { transform: translate(0, -20px); }
-            100% { transform: translate(0, -0px); }
+            0% {
+                transform: translate(0, 0px);
+            }
+
+            50% {
+                transform: translate(0, -20px);
+            }
+
+            100% {
+                transform: translate(0, -0px);
+            }
         }
-        
+
         .fade-in-up {
             animation: fadeInUp 0.8s ease-out forwards;
             opacity: 0;
             transform: translateY(30px);
         }
-        
+
         @keyframes fadeInUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.4s; }
-        .stagger-5 { animation-delay: 0.5s; }
-        .stagger-6 { animation-delay: 0.6s; }
-        
+
+        .stagger-1 {
+            animation-delay: 0.1s;
+        }
+
+        .stagger-2 {
+            animation-delay: 0.2s;
+        }
+
+        .stagger-3 {
+            animation-delay: 0.3s;
+        }
+
+        .stagger-4 {
+            animation-delay: 0.4s;
+        }
+
+        .stagger-5 {
+            animation-delay: 0.5s;
+        }
+
+        .stagger-6 {
+            animation-delay: 0.6s;
+        }
+
         .pulse-slow {
             animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        
+
         @keyframes pulse-slow {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
-        
+
         .glow {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
             transition: box-shadow 0.3s ease;
         }
-        
+
         .glow:hover {
             box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
         }
-        
+
         .card-hover {
             transition: all 0.3s ease;
         }
-        
+
         .card-hover:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
-        
+
         .typing {
             overflow: hidden;
             border-right: 2px solid #667eea;
             white-space: nowrap;
             animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
         }
-        
+
         @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
         }
-        
+
         @keyframes blink-caret {
-            from, to { border-color: transparent; }
-            50% { border-color: #667eea; }
+
+            from,
+            to {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: #667eea;
+            }
         }
 
         /* NEW: Dynamic Professional Gradient Rays */
         .gradient-rays {
-            background: 
-                conic-gradient(from 45deg at 20% 80%, 
-                    transparent 0deg, 
+            background:
+                conic-gradient(from 45deg at 20% 80%,
+                    transparent 0deg,
                     rgba(139, 92, 246, 0.08) 45deg,
-                    rgba(59, 130, 246, 0.06) 90deg, 
+                    rgba(59, 130, 246, 0.06) 90deg,
                     transparent 135deg,
                     rgba(167, 139, 250, 0.04) 180deg,
                     transparent 225deg,
                     rgba(79, 70, 229, 0.05) 270deg,
-                    transparent 315deg
-                ),
-                conic-gradient(from 225deg at 80% 20%, 
-                    transparent 0deg, 
+                    transparent 315deg),
+                conic-gradient(from 225deg at 80% 20%,
+                    transparent 0deg,
                     rgba(167, 139, 250, 0.06) 45deg,
-                    rgba(139, 92, 246, 0.04) 90deg, 
+                    rgba(139, 92, 246, 0.04) 90deg,
                     transparent 135deg,
                     rgba(59, 130, 246, 0.08) 180deg,
                     transparent 225deg,
                     rgba(79, 70, 229, 0.03) 270deg,
-                    transparent 315deg
-                ),
+                    transparent 315deg),
                 /* Additional subtle rays for more depth */
-                conic-gradient(from 135deg at 50% 50%, 
-                    transparent 0deg, 
+                conic-gradient(from 135deg at 50% 50%,
+                    transparent 0deg,
                     rgba(139, 92, 246, 0.02) 60deg,
                     transparent 120deg,
                     rgba(59, 130, 246, 0.03) 180deg,
                     transparent 240deg,
                     rgba(167, 139, 250, 0.02) 300deg,
-                    transparent 360deg
-                );
+                    transparent 360deg);
             animation: rays-rotate 40s linear infinite;
         }
-        
+
         @keyframes rays-rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Enhanced glow effects that work with the rays */
         .enhanced-glow {
-            box-shadow: 
+            box-shadow:
                 0 0 20px rgba(139, 92, 246, 0.3),
                 0 0 40px rgba(59, 130, 246, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
-        
+
         .enhanced-glow:hover {
-            box-shadow: 
+            box-shadow:
                 0 0 30px rgba(139, 92, 246, 0.5),
                 0 0 60px rgba(59, 130, 246, 0.2),
                 0 0 100px rgba(167, 139, 250, 0.1),
@@ -165,12 +229,13 @@
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.1),
                 0 2px 8px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
+
 <body class="font-inter antialiased">
     <!-- NEW: Dynamic Professional Background -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
@@ -178,7 +243,7 @@
         <!-- Optional: Add a subtle overlay for even more depth -->
         <div class="absolute inset-0 bg-gradient-to-br from-slate-50/20 via-transparent to-blue-50/20"></div>
     </div>
-    
+
     <!-- Navigation -->
     <nav class="relative z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,51 +252,57 @@
                 <div class="flex items-center flex-shrink-0">
                     <div class="flex items-center">
                         <div class="w-8 h-8 sm:w-10 sm:h-10 ">
-                           <img src="images/peek-logo.png" alt="">
+                            <img src="images/peek-logo.png" alt="">
                         </div>
                         <span class="ml-2 sm:ml-3 text-lg sm:text-2xl font-bold gradient-text">PeekTheLink</span>
                     </div>
                 </div>
-                
+
                 <!-- Desktop Navigation Menu -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="#features" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Features</a>
-                        <a href="#how-it-works" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">How it Works</a>
-                        <a href="#demo" class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Demo</a>
+                        <a href="#features"
+                            class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Features</a>
+                        <a href="#how-it-works"
+                            class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">How
+                            it Works</a>
+                        <a href="#demo"
+                            class="text-gray-600 hover:text-purple-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Demo</a>
                     </div>
                 </div>
-                
+
                 <!-- Right Side - Auth Buttons and Mobile Menu -->
                 <div class="flex items-center">
                     @auth
-                        <a href="{{ route('dashboard') }}" 
-                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-3 sm:px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm sm:text-base">
+                        <a href="{{ route('dashboard') }}"
+                            class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-3 sm:px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm sm:text-base">
                             Dashboard
                         </a>
                     @else
                         <!-- Desktop Auth Buttons -->
                         <div class="hidden sm:flex items-center space-x-4">
-                            <a href="{{ route('login') }}" 
-                               class="text-gray-600 hover:text-purple-600 px-4 py-2 text-sm font-medium transition-colors duration-200">
+                            <a href="{{ route('login') }}"
+                                class="text-gray-600 hover:text-purple-600 px-4 py-2 text-sm font-medium transition-colors duration-200">
                                 Sign In
                             </a>
-                            <a href="{{ route('register') }}" 
-                               class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow">
+                            <a href="{{ route('register') }}"
+                                class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow">
                                 Get Started
                             </a>
                         </div>
-                        
+
                         <!-- Mobile: Just the Start button -->
                         <div class="sm:hidden flex items-center space-x-3">
-                            <a href="{{ route('register') }}" 
-                               class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm">
+                            <a href="{{ route('register') }}"
+                                class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105 enhanced-glow text-sm">
                                 Get Started
                             </a>
                             <!-- Mobile Menu Toggle -->
-                            <button id="mobile-menu-toggle" class="text-gray-600 hover:text-purple-600 p-2 rounded-lg hover:bg-gray-100">
+                            <button id="mobile-menu-toggle"
+                                class="text-gray-600 hover:text-purple-600 p-2 rounded-lg hover:bg-gray-100">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16"></path>
                                 </svg>
                             </button>
                         </div>
@@ -239,21 +310,26 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden sm:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-lg">
+        <div id="mobile-menu"
+            class="hidden sm:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-lg">
             <div class="px-4 py-4 space-y-3">
-                <a href="#features" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Features</a>
-                <a href="#how-it-works" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">How it Works</a>
-                <a href="#demo" class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Demo</a>
+                <a href="#features"
+                    class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Features</a>
+                <a href="#how-it-works"
+                    class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">How
+                    it Works</a>
+                <a href="#demo"
+                    class="block text-gray-600 hover:text-purple-600 py-3 text-base font-medium transition-colors duration-200 border-b border-gray-100">Demo</a>
                 @guest
                     <div class="pt-3">
-                        <a href="{{ route('login') }}" 
-                           class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 mb-3">
+                        <a href="{{ route('login') }}"
+                            class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 mb-3">
                             Sign In
                         </a>
-                        <a href="{{ route('register') }}" 
-                           class="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 enhanced-glow">
+                        <a href="{{ route('register') }}"
+                            class="block w-full text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 enhanced-glow">
                             Start Free
                         </a>
                     </div>
@@ -273,40 +349,44 @@
                     <br>
                     <span class="typing inline-block">In One Link</span>
                 </h1>
-                
+
                 <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto fade-in-up stagger-2">
-                    Create a stunning landing page that showcases all your content. Perfect for creators, businesses, and influencers. <strong>Free for a limited time during our launch!</strong>
+                    Create a stunning landing page that showcases all your content. Perfect for creators, businesses,
+                    and influencers. <strong>Free for a limited time during our launch!</strong>
                 </p>
-                
+
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16 fade-in-up stagger-3">
                     @auth
-                        <a href="{{ route('dashboard') }}" 
-                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105 enhanced-glow">
+                        <a href="{{ route('dashboard') }}"
+                            class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105 enhanced-glow">
                             Go to Dashboard
                         </a>
                     @else
-                        <a href="{{ route('register') }}" 
-                           class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105 enhanced-glow">
+                        <a href="{{ route('register') }}"
+                            class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 transform hover:scale-105 enhanced-glow">
                             Start Building Free
                         </a>
-                        <a href="#demo" 
-                           class="professional-card hover:bg-white text-gray-800 font-bold py-4 px-8 rounded-full text-lg border-2 border-gray-200 hover:border-purple-300 transition duration-300 transform hover:scale-105">
+                        <a href="#demo"
+                            class="professional-card hover:bg-white text-gray-800 font-bold py-4 px-8 rounded-full text-lg border-2 border-gray-200 hover:border-purple-300 transition duration-300 transform hover:scale-105">
                             See Demo
                         </a>
                     @endauth
                 </div>
-                
+
                 <!-- Free Badge -->
                 <div class="mb-8 fade-in-up stagger-4">
-                    <span class="inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold professional-card text-orange-800 border border-orange-200 bg-gradient-to-r from-orange-50/80 to-red-50/80">
+                    <span
+                        class="inline-flex items-center px-6 py-3 rounded-full text-lg font-semibold professional-card text-orange-800 border border-orange-200 bg-gradient-to-r from-orange-50/80 to-red-50/80">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                clip-rule="evenodd"></path>
                         </svg>
                         🚀 Limited Time Launch Offer - Free Access!
                     </span>
                 </div>
-                
+
                 <!-- Stats -->
                 <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto fade-in-up stagger-5">
                     <div class="text-center">
@@ -324,26 +404,30 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Floating Phone Mockup -->
         <div class="absolute right-10 top-1/2 transform -translate-y-1/2 floating hidden xl:block">
             <div class="w-80 h-full professional-card rounded-3xl p-8 shadow-2xl">
                 <div class="bg-white rounded-2xl h-full p-6 shadow-lg">
                     <div class="text-center">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold pulse-slow enhanced-glow">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold pulse-slow enhanced-glow">
                             JD
                         </div>
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">@johndoe</h3>
                         <p class="text-sm text-gray-600 mb-6">Content Creator</p>
-                        
+
                         <div class="space-y-3">
-                            <div class="hover:cursor-pointer bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
+                            <div
+                                class="hover:cursor-pointer bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
                                 🌐 My Website
                             </div>
-                            <div class="hover:cursor-pointer bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
+                            <div
+                                class="hover:cursor-pointer bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
                                 📸 Instagram
                             </div>
-                            <div class="hover:cursor-pointer bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
+                            <div
+                                class="hover:cursor-pointer bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg text-sm font-medium transform hover:scale-105 transition duration-200 enhanced-glow">
                                 🎥 YouTube
                             </div>
                         </div>
@@ -365,59 +449,77 @@
                     Everything you need to showcase your content and grow your audience - free during our launch period
                 </p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
                 <div class="professional-card rounded-2xl p-8 shadow-lg card-hover">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                            </path>
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Unlimited Links</h3>
-                    <p class="text-gray-600 mb-6">Add as many links as you want. No restrictions, no limits. Share everything that matters to your audience - free during launch.</p>
+                    <p class="text-gray-600 mb-6">Add as many links as you want. No restrictions, no limits. Share
+                        everything that matters to your audience - free during launch.</p>
                     <div class="flex items-center text-purple-600 font-semibold">
                         <span class="inline-flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                             Launch Special
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- Feature 2 -->
                 <div class="professional-card rounded-2xl p-8 shadow-lg card-hover">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Advanced Analytics</h3>
-                    <p class="text-gray-600 mb-6">Track every click, understand your audience, and optimize your content strategy with detailed insights - included free during launch.</p>
+                    <p class="text-gray-600 mb-6">Track every click, understand your audience, and optimize your content
+                        strategy with detailed insights - included free during launch.</p>
                     <div class="flex items-center text-green-600 font-semibold">
                         <span class="inline-flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                             Launch Special
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- Feature 3 -->
                 <div class="professional-card rounded-2xl p-8 shadow-lg card-hover">
-                    <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center mb-6 pulse-slow enhanced-glow">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM7 21h10a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a4 4 0 01-4 4z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM7 21h10a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a4 4 0 01-4 4z">
+                            </path>
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Custom Themes</h3>
-                    <p class="text-gray-600 mb-6">Personalize your page with beautiful themes, custom colors, and your own branding elements - all included during launch.</p>
+                    <p class="text-gray-600 mb-6">Personalize your page with beautiful themes, custom colors, and your
+                        own branding elements - all included during launch.</p>
                     <div class="flex items-center text-pink-600 font-semibold">
                         <span class="inline-flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                             Launch Special
                         </span>
@@ -439,42 +541,50 @@
                     Create your PeekTheLink page in minutes, not hours - get early access during our launch period
                 </p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <!-- Step 1 -->
                 <div class="text-center">
                     <div class="relative mb-8">
-                        <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
                             1
                         </div>
                         <div class="absolute -top-4 -right-4 w-8 h-8 bg-yellow-400 rounded-full animate-bounce"></div>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Create Launch Account</h3>
-                    <p class="text-gray-600 text-lg">Sign up for early access and choose your unique username that represents your brand. No credit card required.</p>
+                    <p class="text-gray-600 text-lg">Sign up for early access and choose your unique username that
+                        represents your brand. No credit card required.</p>
                 </div>
-                
+
                 <!-- Step 2 -->
                 <div class="text-center">
                     <div class="relative mb-8">
-                        <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-teal-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-br from-green-500 to-teal-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
                             2
                         </div>
-                        <div class="absolute -top-4 -right-4 w-8 h-8 bg-pink-400 rounded-full animate-bounce" style="animation-delay: 0.5s;"></div>
+                        <div class="absolute -top-4 -right-4 w-8 h-8 bg-pink-400 rounded-full animate-bounce"
+                            style="animation-delay: 0.5s;"></div>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Add Your Links</h3>
-                    <p class="text-gray-600 text-lg">Add unlimited links to your social media, website, store, portfolio, and anything else you want to share.</p>
+                    <p class="text-gray-600 text-lg">Add unlimited links to your social media, website, store,
+                        portfolio, and anything else you want to share.</p>
                 </div>
-                
+
                 <!-- Step 3 -->
                 <div class="text-center">
                     <div class="relative mb-8">
-                        <div class="w-24 h-24 bg-gradient-to-br from-pink-500 to-red-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-br from-pink-500 to-red-500 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-2xl pulse-slow enhanced-glow">
                             3
                         </div>
-                        <div class="absolute -top-4 -right-4 w-8 h-8 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 1s;"></div>
+                        <div class="absolute -top-4 -right-4 w-8 h-8 bg-blue-400 rounded-full animate-bounce"
+                            style="animation-delay: 1s;"></div>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">Share & Grow</h3>
-                    <p class="text-gray-600 text-lg">Use your PeekTheLink URL everywhere and watch your audience engage with all your content during our special launch period.</p>
+                    <p class="text-gray-600 text-lg">Use your PeekTheLink URL everywhere and watch your audience engage
+                        with all your content during our special launch period.</p>
                 </div>
             </div>
         </div>
@@ -492,27 +602,32 @@
                     This is what your PeekTheLink page will look like - get early access during launch
                 </p>
             </div>
-            
+
             <div class="max-w-sm mx-auto">
                 <div class="professional-card rounded-3xl p-8 shadow-2xl card-hover">
                     <div class="text-center">
-                        <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold pulse-slow enhanced-glow">
+                        <div
+                            class="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold pulse-slow enhanced-glow">
                             JD
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">@johndoe</h3>
                         <p class="text-gray-600 mb-6">Content Creator & Designer</p>
-                        
+
                         <div class="space-y-4">
-                            <div class="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
+                            <div
+                                class="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
                                 🌐 My Website
                             </div>
-                            <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
+                            <div
+                                class="bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
                                 📸 Instagram
                             </div>
-                            <div class="bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
+                            <div
+                                class="bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
                                 🎥 YouTube Channel
                             </div>
-                            <div class="bg-gradient-to-r from-green-500 to-teal-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
+                            <div
+                                class="bg-gradient-to-r from-green-500 to-teal-500 text-white py-4 px-6 rounded-xl text-lg font-semibold transform hover:scale-105 transition duration-300 cursor-pointer enhanced-glow">
                                 🛍️ Online Store
                             </div>
                         </div>
@@ -531,34 +646,44 @@
                     <span class="gradient-text">Free During Launch?</span>
                 </h2>
                 <p class="text-xl text-gray-600 mb-12">
-                    We're offering full access during our launch period to early adopters who help us build the best link-in-bio platform. Join now and lock in exclusive features!
+                    We're offering full access during our launch period to early adopters who help us build the best
+                    link-in-bio platform. Join now and lock in exclusive features!
                 </p>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="professional-card rounded-2xl p-6 shadow-lg">
-                        <div class="w-12 h-12 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
+                        <div
+                            class="w-12 h-12 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
                             <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                         </div>
                         <h3 class="text-lg font-bold text-gray-900 mb-2">Launch Pricing</h3>
                         <p class="text-gray-600">Free access during our launch period for early adopters.</p>
                     </div>
-                    
+
                     <div class="professional-card rounded-2xl p-6 shadow-lg">
-                        <div class="w-12 h-12 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
+                        <div
+                            class="w-12 h-12 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
                             <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                         </div>
                         <h3 class="text-lg font-bold text-gray-900 mb-2">Early Access</h3>
                         <p class="text-gray-600">Be among the first to experience our premium features.</p>
                     </div>
-                    
+
                     <div class="professional-card rounded-2xl p-6 shadow-lg">
-                        <div class="w-12 h-12 bg-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
+                        <div
+                            class="w-12 h-12 bg-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center enhanced-glow">
                             <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                         </div>
                         <h3 class="text-lg font-bold text-gray-900 mb-2">Exclusive Features</h3>
@@ -576,24 +701,26 @@
                 Ready to Get Started?
             </h2>
             <p class="text-xl md:text-2xl text-purple-100 mb-12 max-w-3xl mx-auto">
-                Join thousands of early adopters who are securing their spot on PeekTheLink during our exclusive launch period
+                Join thousands of early adopters who are securing their spot on PeekTheLink during our exclusive launch
+                period
             </p>
-            
+
             @auth
-                <a href="{{ route('dashboard') }}" 
-                   class="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-full text-xl transition duration-300 transform hover:scale-105 inline-block shadow-2xl">
+                <a href="{{ route('dashboard') }}"
+                    class="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-full text-xl transition duration-300 transform hover:scale-105 inline-block shadow-2xl">
                     Go to Dashboard
                 </a>
             @else
-                <a href="{{ route('register') }}" 
-                   class="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-full text-xl transition duration-300 transform hover:scale-105 inline-block shadow-2xl">
+                <a href="{{ route('register') }}"
+                    class="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-12 rounded-full text-xl transition duration-300 transform hover:scale-105 inline-block shadow-2xl">
                     Get Launch Access
                 </a>
             @endauth
-            
+
             <div class="mt-8">
                 <p class="text-purple-200 text-lg">
-                    ✓ No credit card required &nbsp;•&nbsp; ✓ Launch special pricing &nbsp;•&nbsp; ✓ Lock in exclusive features
+                    ✓ No credit card required &nbsp;•&nbsp; ✓ Launch special pricing &nbsp;•&nbsp; ✓ Lock in exclusive
+                    features
                 </p>
             </div>
         </div>
@@ -605,7 +732,7 @@
             <div class="text-center">
                 <div class="flex items-center justify-center mb-6">
                     <div class="w-12 h-12 enhanced-glow ">
-                       <img src="images/peek-logo.png" alt="">
+                        <img src="images/peek-logo.png" alt="">
                     </div>
                     <span class="ml-3 text-3xl font-bold gradient-text">PeekTheLink</span>
                 </div>
@@ -650,21 +777,21 @@
             observer.observe(el);
         });
     </script>
-      <script>
+    <script>
         // Mobile menu toggle functionality (optional)
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
             const mobileMenu = document.getElementById('mobile-menu');
-            
+
             if (mobileMenuToggle && mobileMenu) {
-                mobileMenuToggle.addEventListener('click', function() {
+                mobileMenuToggle.addEventListener('click', function () {
                     mobileMenu.classList.toggle('hidden');
                 });
-                
+
                 // Close mobile menu when clicking on links
                 const mobileMenuLinks = mobileMenu.querySelectorAll('a');
                 mobileMenuLinks.forEach(link => {
-                    link.addEventListener('click', function() {
+                    link.addEventListener('click', function () {
                         mobileMenu.classList.add('hidden');
                     });
                 });
@@ -672,4 +799,5 @@
         });
     </script>
 </body>
+
 </html>
