@@ -24,7 +24,7 @@ jobs:
           npm ci
           npm run build
 
-      # Upload only compiled assets to the server
+      # Upload only compiled assets
       - name: Upload public/build
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -34,10 +34,10 @@ jobs:
           port:     ${{ secrets.SSH_PORT || 22 }}
           source:   "public/build/*"
           target:   "/var/www/peekthelink/public/build"
-          rm: true
+          rm: false            # <- don't nuke remote dir
           overwrite: true
 
-      # Upload PHP/app code (skip node_modules/vendor/.git)
+      # Upload app code but protect .env & storage
       - name: Upload app code
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -47,7 +47,7 @@ jobs:
           port:     ${{ secrets.SSH_PORT || 22 }}
           source:   "./"
           target:   "/var/www/peekthelink"
-          rm: true
+          rm: false            # <- don't nuke remote tree
           overwrite: true
           strip_components: 1
           exclude: |
@@ -56,6 +56,8 @@ jobs:
             vendor
             .github
             public/build
+            storage
+            .env
 
       - name: Remote deploy (composer, migrate, cache)
         uses: appleboy/ssh-action@v1.2.0
@@ -71,18 +73,21 @@ jobs:
 
             php artisan down || true
 
+            # fix perms for writable dirs (safe & idempotent)
             chown -R $USER:www-data storage bootstrap/cache public/build || true
             find storage bootstrap/cache public/build -type d -exec chmod 775 {} \; || true
             find storage bootstrap/cache public/build -type f -exec chmod 664 {} \; || true
 
+            # php deps
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
+            # clear/rebuild caches
             php artisan cache:clear || true
             php artisan config:clear || true
             php artisan route:clear || true
             php artisan view:clear || true
 
-            # Postgres is your DB; migrations will use .env on the server
+            # Postgres migrations
             php artisan migrate --force
 
             php artisan config:cache
