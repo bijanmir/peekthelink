@@ -25,6 +25,13 @@ class User extends Authenticatable
         'profile_image',
         'theme_color',
         'is_active',
+        'is_admin',
+        'is_suspended',
+        'suspended_at',
+        'suspended_reason',
+        'admin_notes',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -47,6 +54,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_admin' => 'boolean',
+            'is_suspended' => 'boolean',
+            'suspended_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -72,5 +83,29 @@ class User extends Authenticatable
     public function activeLinks()
     {
         return $this->hasMany(Link::class)->where('is_active', true)->orderBy('order');
+    }
+
+    /**
+     * Check if user is an administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    /**
+     * Get the user's profile views.
+     */
+    public function profileViews()
+    {
+        return $this->hasMany(ProfileView::class);
+    }
+
+    /**
+     * Get all conversions for this user.
+     */
+    public function conversions()
+    {
+        return $this->hasMany(Conversion::class);
     }
 }

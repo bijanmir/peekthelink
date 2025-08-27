@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LinksController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // NEW: Profile image management (AJAX endpoints)
     Route::post('/profile/upload-image', [ProfileController::class, 'uploadProfileImage'])->name('profile.upload-image');
     Route::delete('/profile/remove-image', [ProfileController::class, 'removeProfileImage'])->name('profile.remove-image');
+});
+
+// Admin routes - Protected by admin middleware
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Main admin dashboard
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    
+    // Users management
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/{user}', [AdminController::class, 'userShow'])->name('users.show');
+    Route::post('/users/{user}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
+    
+    // Links management
+    Route::get('/links', [AdminController::class, 'links'])->name('links');
+    Route::get('/links/{link}', [AdminController::class, 'linkShow'])->name('links.show');
+    Route::post('/links/{link}/status', [AdminController::class, 'updateLinkStatus'])->name('links.status');
+    
+    // Statistics and analytics
+    Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
+    
+    // Data export
+    Route::get('/export', [AdminController::class, 'export'])->name('export');
 });
 
 // Auth routes (login, register, etc.)
