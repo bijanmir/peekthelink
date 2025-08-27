@@ -7,118 +7,66 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        
+
       - name: Rsync code to server
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -az --delete --exclude=".git" --exclude="node_modules" --exclude="vendor" --exclude=".github" --exclude="storage/logs/*" --exclude="storage/framework/cache/*" --exclude="storage/framework/sessions/*" --exclude="storage/framework/views/*" --exclude=".env"
+          switches: -az --delete --exclude=".git" --exclude="node_modules" --exclude="vendor" --exclude=".github" --exclude="storage/logs/*" --exclude="storage/framework/cache/*"
           path: ./
-          remote_path: ${{ vars.APP_DIR }}
+          remote_path: /var/www/peekthelink   # <-- hard-coded to avoid empty var
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_KEY }}
-          remote_port: ${{ secrets.SSH_PORT || 22 }}
-          
-      - name: Run remote deploy steps
+          remote_key:  ${{ secrets.SSH_KEY }}
+          # remote_port: 22  # omit if default 22; otherwise add a SSH_PORT secret and set it here
+
+      - name: Run remote deploy steps (composer, npm build, artisan)
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host:     ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          key:      ${{ secrets.SSH_KEY }}
+          # port:   ${{ secrets.SSH_PORT }} # only if not 22
           script: |
             set -euo pipefail
-            APP_DIR="${{ vars.APP_DIR }}"
+            APP_DIR="/var/www/peekthelink"
             cd "$APP_DIR"
-            
-            echo "🚀 Starting deployment..."
-            
-            # Maintenance mode (ignore error if already down)
-            echo "📴 Enabling maintenance mode..."
-            php artisan down --message="Deploying new version..." --retry=60 || true
-            
-            # Check if .env exists (critical for Laravel)
-            if [ ! -f .env ]; then
-              echo "❌ ERROR: .env file not found!"
-              php artisan up || true
-              exit 1
-            fi
-            
-            # Fix permissions for Laravel directories
-            echo "🔐 Setting permissions..."
-            sudo chown -R $USER:www-data storage bootstrap/cache || true
-            sudo find storage bootstrap/cache -type d -exec chmod 775 {} \; || true
-            sudo find storage bootstrap/cache -type f -exec chmod 664 {} \; || true
-            
-            # Set ACLs if available (better permission handling)
+
+            php artisan down || true
+
+            sudo chown -R $USER:www-data storage bootstrap/cache public/build || true
+            sudo find storage bootstrap/cache public/build -type d -exec chmod 775 {} \; || true
+            sudo find storage bootstrap/cache public/build -type f -exec chmod 664 {} \; || true
             if command -v setfacl >/dev/null 2>&1; then
-              sudo setfacl -R -m u:www-data:rwX -m d:u:www-data:rwX storage bootstrap/cache || true
+              sudo setfacl -R -m u:www-data:rwX -m d:u:www-data:rwX storage bootstrap/cache public/build || true
             fi
-            
-            # Install PHP dependencies
-            echo "📦 Installing Composer dependencies..."
+
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-            
-            # Clear all caches before building
-            echo "🧹 Clearing caches..."
+
             php artisan cache:clear || true
             php artisan config:clear || true
             php artisan route:clear || true
             php artisan view:clear || true
-            
-            # Install and build frontend assets
-            echo "🎨 Building frontend assets..."
+
             if [ -f package-lock.json ]; then
-              npm ci --production
+              npm ci
             else
-              npm install --production
+              npm install
             fi
-            
-            # Ensure build directory permissions
-            sudo chown -R $USER:www-data public/build 2>/dev/null || true
-            sudo chmod -R 775 public/build 2>/dev/null || true
-            
-            # Build assets
-            npm run build
-            
-            # Set final permissions on build directory
+
             sudo chown -R $USER:www-data public/build || true
-            
-            # Generate application key if needed (for new deployments)
-            if ! php artisan key:generate --show >/dev/null 2>&1; then
-              echo "🔑 Generating application key..."
-              php artisan key:generate --force
-            fi
-            
-            # Run database migrations
-            echo "🗄️  Running migrations..."
+            sudo chmod -R 775 public/build || true
+            npm run build
+
             php artisan migrate --force
-            
-            # Create storage link if it doesn't exist
-            if [ ! -L public/storage ]; then
-              echo "🔗 Creating storage link..."
-              php artisan storage:link
-            fi
-            
-            # Rebuild and optimize caches
-            echo "⚡ Optimizing application..."
+
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
-            
-            # Restart queue workers if using queues
-            echo "🔄 Restarting queue workers..."
+
             php artisan queue:restart || true
-            
-            # Restart PHP-FPM (if using it) - uncomment if needed
-            # sudo systemctl reload php8.3-fpm || true
-            
-            # Disable maintenance mode
-            echo "✅ Disabling maintenance mode..."
             php artisan up
-            
-            echo "🎉 Deployment completed successfully!"
