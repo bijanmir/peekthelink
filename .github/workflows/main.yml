@@ -12,37 +12,41 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Preflight: fail if SSH secrets are empty (won't print them)
+      - name: Preflight secrets
+        run: |
+          test -n "${{ secrets.SSH_KEY }}"  || { echo "SSH_KEY is empty";  exit 1; }
+          test -n "${{ secrets.SSH_USER }}" || { echo "SSH_USER is empty"; exit 1; }
+
       - name: Rsync code to server
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -az --delete --exclude=".git" --exclude="node_modules" --exclude="vendor" --exclude=".github" --exclude="storage/logs/*" --exclude="storage/framework/cache/*"
+          switches: -az --delete \
+            --exclude=".git" --exclude="node_modules" --exclude="vendor" --exclude=".github" \
+            --exclude="storage/logs/*" --exclude="storage/framework/cache/*"
           path: ./
-          remote_path: /var/www/peekthelink   # <-- hard-coded to avoid empty var
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key:  ${{ secrets.SSH_KEY }}
-          # remote_port: 22  # omit if default 22; otherwise add a SSH_PORT secret and set it here
+          remote_path: /var/www/peekthelink           # hard-coded to avoid empty var
+          remote_host: 64.23.138.243                  # hard-coded to avoid empty secret/var issue
+          remote_user: ${{ secrets.SSH_USER }}        # e.g. "bijan"
+          remote_key:  ${{ secrets.SSH_KEY }}         # private key (OpenSSH format)
+          # remote_port: 22                           # add if different
 
       - name: Run remote deploy steps (composer, npm build, artisan)
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host:     ${{ secrets.SSH_HOST }}
+          host:     64.23.138.243
           username: ${{ secrets.SSH_USER }}
           key:      ${{ secrets.SSH_KEY }}
-          # port:   ${{ secrets.SSH_PORT }} # only if not 22
           script: |
             set -euo pipefail
-            APP_DIR="/var/www/peekthelink"
-            cd "$APP_DIR"
+            cd /var/www/peekthelink
 
             php artisan down || true
 
-            sudo chown -R $USER:www-data storage bootstrap/cache public/build || true
-            sudo find storage bootstrap/cache public/build -type d -exec chmod 775 {} \; || true
-            sudo find storage bootstrap/cache public/build -type f -exec chmod 664 {} \; || true
-            if command -v setfacl >/dev/null 2>&1; then
-              sudo setfacl -R -m u:www-data:rwX -m d:u:www-data:rwX storage bootstrap/cache public/build || true
-            fi
+            # Make sure bijan owns writable dirs (avoid sudo prompts)
+            chown -R $USER:www-data storage bootstrap/cache public/build || true
+            find storage bootstrap/cache public/build -type d -exec chmod 775 {} \; || true
+            find storage bootstrap/cache public/build -type f -exec chmod 664 {} \; || true
 
             composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
@@ -51,14 +55,7 @@ jobs:
             php artisan route:clear || true
             php artisan view:clear || true
 
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
-            fi
-
-            sudo chown -R $USER:www-data public/build || true
-            sudo chmod -R 775 public/build || true
+            if [ -f package-lock.json ]; then npm ci; else npm install; fi
             npm run build
 
             php artisan migrate --force
@@ -67,6 +64,5 @@ jobs:
             php artisan route:cache
             php artisan view:cache
             php artisan optimize
-
             php artisan queue:restart || true
             php artisan up
