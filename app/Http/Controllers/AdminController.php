@@ -100,7 +100,7 @@ class AdminController extends Controller
     public function updateUserStatus(Request $request, User $user)
     {
         $request->validate([
-            'action' => 'required|in:activate,deactivate,suspend,unsuspend,make_admin,remove_admin'
+            'action' => 'required|in:activate,deactivate,suspend,unsuspend,make_admin,remove_admin,update_notes'
         ]);
         
         switch ($request->action) {
@@ -135,6 +135,10 @@ class AdminController extends Controller
             case 'remove_admin':
                 $user->update(['is_admin' => false]);
                 $message = 'Admin privileges removed successfully';
+                break;
+            case 'update_notes':
+                $user->update(['admin_notes' => $request->admin_notes]);
+                $message = 'Admin notes updated successfully';
                 break;
         }
         
