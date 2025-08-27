@@ -1,4 +1,4 @@
-name: Deploy to PeekTheLink (Prod)
+name: Deploy (Build in CI)
 
 on:
   push:
@@ -7,19 +7,38 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: Production   # <-- THIS unlocks your Environment secrets
+    environment: Production
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Preflight secrets
-        run: |
-          test -n "${{ secrets.SSH_HOST }}" || { echo "SSH_HOST is empty"; exit 1; }
-          test -n "${{ secrets.SSH_USER }}" || { echo "SSH_USER is empty"; exit 1; }
-          test -n "${{ secrets.SSH_KEY }}"  || { echo "SSH_KEY is empty";  exit 1; }
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Upload code via SCP
+      - name: Install & build (CI)
+        run: |
+          npm ci
+          npm run build
+
+      # Upload only compiled assets to the server
+      - name: Upload public/build
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_KEY }}
+          port:     ${{ secrets.SSH_PORT || 22 }}
+          source:   "public/build/*"
+          target:   "/var/www/peekthelink/public/build"
+          rm: true
+          overwrite: true
+
+      # Upload PHP/app code (skip node_modules/vendor/.git)
+      - name: Upload app code
         uses: appleboy/scp-action@v0.1.7
         with:
           host:     ${{ secrets.SSH_HOST }}
@@ -36,8 +55,9 @@ jobs:
             node_modules
             vendor
             .github
+            public/build
 
-      - name: Run remote deploy steps (composer, npm build, artisan)
+      - name: Remote deploy (composer, migrate, cache)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host:     ${{ secrets.SSH_HOST }}
@@ -62,9 +82,7 @@ jobs:
             php artisan route:clear || true
             php artisan view:clear || true
 
-            if [ -f package-lock.json ]; then npm ci; else npm install; fi
-            npm run build
-
+            # Postgres is your DB; migrations will use .env on the server
             php artisan migrate --force
 
             php artisan config:cache
