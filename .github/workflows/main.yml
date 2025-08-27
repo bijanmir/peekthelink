@@ -7,43 +7,50 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: Production   # <-- THIS unlocks your Environment secrets
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Preflight: fail if SSH secrets are empty (won't print them)
       - name: Preflight secrets
         run: |
-          test -n "${{ secrets.SSH_KEY }}"  || { echo "SSH_KEY is empty";  exit 1; }
+          test -n "${{ secrets.SSH_HOST }}" || { echo "SSH_HOST is empty"; exit 1; }
           test -n "${{ secrets.SSH_USER }}" || { echo "SSH_USER is empty"; exit 1; }
+          test -n "${{ secrets.SSH_KEY }}"  || { echo "SSH_KEY is empty";  exit 1; }
 
-      - name: Rsync code to server
-        uses: burnett01/rsync-deployments@7.0.1
+      - name: Upload code via SCP
+        uses: appleboy/scp-action@v0.1.7
         with:
-          switches: -az --delete \
-            --exclude=".git" --exclude="node_modules" --exclude="vendor" --exclude=".github" \
-            --exclude="storage/logs/*" --exclude="storage/framework/cache/*"
-          path: ./
-          remote_path: /var/www/peekthelink           # hard-coded to avoid empty var
-          remote_host: 64.23.138.243                  # hard-coded to avoid empty secret/var issue
-          remote_user: ${{ secrets.SSH_USER }}        # e.g. "bijan"
-          remote_key:  ${{ secrets.SSH_KEY }}         # private key (OpenSSH format)
-          # remote_port: 22                           # add if different
+          host:     ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key:      ${{ secrets.SSH_KEY }}
+          port:     ${{ secrets.SSH_PORT || 22 }}
+          source:   "./"
+          target:   "/var/www/peekthelink"
+          rm: true
+          overwrite: true
+          strip_components: 1
+          exclude: |
+            .git*
+            node_modules
+            vendor
+            .github
 
       - name: Run remote deploy steps (composer, npm build, artisan)
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host:     64.23.138.243
+          host:     ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key:      ${{ secrets.SSH_KEY }}
+          port:     ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -euo pipefail
-            cd /var/www/peekthelink
+            APP_DIR=/var/www/peekthelink
+            cd "$APP_DIR"
 
             php artisan down || true
 
-            # Make sure bijan owns writable dirs (avoid sudo prompts)
             chown -R $USER:www-data storage bootstrap/cache public/build || true
             find storage bootstrap/cache public/build -type d -exec chmod 775 {} \; || true
             find storage bootstrap/cache public/build -type f -exec chmod 664 {} \; || true
